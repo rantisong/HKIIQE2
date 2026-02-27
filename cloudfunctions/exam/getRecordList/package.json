@@ -1,0 +1,9 @@
+{
+  "name": "getRecordList",
+  "version": "1.0.0",
+  "description": "Get record list",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

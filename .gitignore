@@ -1,6 +1,8 @@
 # WeChat Mini Program
-node_modules/
-package-lock.json
+miniprogram/node_modules/
+miniprogram/package-lock.json
+cloudfunctions/*/node_modules/
+cloudfunctions/*/package-lock.json
 
 # IDE
 .idea/
