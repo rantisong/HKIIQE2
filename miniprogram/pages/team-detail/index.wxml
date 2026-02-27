@@ -1,0 +1,13 @@
+<scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="profile-card">
+    <image class="avatar" src="{{leader.avatar}}" mode="aspectFill" />
+    <text class="name">{{leader.name}}</text>
+    <text class="title">{{leader.title}}</text>
+    <view class="stats-row">
+      <view wx:for="{{leader.stats}}" wx:key="label" class="stat">
+        <text class="stat-label">{{item.label}}</text>
+        <text class="stat-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+</scroll-view>

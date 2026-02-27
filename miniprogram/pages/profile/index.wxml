@@ -1,0 +1,42 @@
+<scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="profile-card">
+    <view class="profile-left">
+      <image class="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Wilson" mode="aspectFill" />
+      <view class="profile-info">
+        <text class="name">Wilson Lam</text>
+        <view class="reg-date">
+          <text class="date-icon">📅</text>
+          <text class="date-text">注册日期 : 2023-10-24</text>
+        </view>
+      </view>
+    </view>
+    <view class="qr-btn">📱</view>
+  </view>
+
+  <view class="stats-grid">
+    <view wx:for="{{stats}}" wx:key="label" class="stat-item">
+      <text class="stat-label">{{item.label}}</text>
+      <view class="stat-value-row">
+        <text class="stat-value brand">{{item.value}}</text>
+        <text class="stat-unit">{{item.unit}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="menu-list">
+    <view class="menu-item" bindtap="onCustomerService">
+      <view class="menu-left">
+        <view class="menu-icon green">🎧</view>
+        <text class="menu-text">在线客服</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="onLogout">
+      <view class="menu-left">
+        <view class="menu-icon red">🚪</view>
+        <text class="menu-text red">退出登录</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+  </view>
+</scroll-view>

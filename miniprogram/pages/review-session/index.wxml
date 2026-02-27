@@ -1,0 +1,58 @@
+<view class="page" wx:if="{{paper && question}}">
+  <view class="header">
+    <text class="mode-tag">复习模式</text>
+    <view class="progress-text">
+      <text class="text-desc">第</text>
+      <text class="brand">{{index + 1}}</text>
+      <text class="text-desc">/</text>
+      <text class="brand">{{questionCount}}</text>
+      <text class="text-desc">题</text>
+    </view>
+  </view>
+
+  <view class="progress-bar">
+    <view class="progress-fill" style="width: {{(index + 1) / questionCount * 100}}%"></view>
+  </view>
+
+  <view class="scroll-wrapper">
+    <scroll-view scroll-y class="content hide-scrollbar" enhanced show-scrollbar="{{false}}">
+      <view class="content-inner">
+        <text class="question-text">{{question.text}}</text>
+
+        <view class="options">
+          <view
+            wx:for="{{question.optionsList}}"
+            wx:key="key"
+            class="option {{question.correctAnswer === item.key ? 'correct' : ''}} {{mockUserChoice === item.key && question.correctAnswer !== item.key ? 'wrong' : ''}}"
+          >
+            <view class="option-circle {{question.correctAnswer === item.key ? 'correct' : ''}} {{mockUserChoice === item.key && question.correctAnswer !== item.key ? 'wrong' : ''}}">
+              <text wx:if="{{question.correctAnswer === item.key}}">✓</text>
+              <text wx:elif="{{mockUserChoice === item.key}}">✗</text>
+              <text wx:else>{{item.key}}</text>
+            </view>
+            <text class="option-text {{question.correctAnswer === item.key ? 'correct' : ''}} {{mockUserChoice === item.key && question.correctAnswer !== item.key ? 'wrong' : ''}}">{{item.text}}</text>
+          </view>
+        </view>
+
+        <view class="explanation">
+          <view class="explanation-header">
+            <view class="explanation-title">
+              <text class="explanation-icon">📖</text>
+              <text class="explanation-label">详细解析</text>
+            </view>
+            <text class="correct-answer">正确答案: <text class="brand">{{question.correctAnswer}}</text></text>
+          </view>
+          <text class="explanation-text">{{question.explanation}}</text>
+          <view class="explanation-en" wx:if="{{question.explanationEn}}">
+            <text>"{{question.explanationEn}}"</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="footer">
+    <button class="btn prev" disabled="{{index === 0}}" bindtap="onPrev">‹ 上一题</button>
+    <button class="btn next" bindtap="onNext">{{index >= questionCount - 1 ? '完成' : '下一题'}} ›</button>
+  </view>
+</view>

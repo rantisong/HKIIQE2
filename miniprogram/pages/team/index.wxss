@@ -1,0 +1,207 @@
+.page {
+  height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: calc(140rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+  background: #F8FAFC;
+}
+
+.header {
+  padding: 32rpx 32rpx 24rpx;
+  background: rgba(255,255,255,0.5);
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: bold;
+  color: #000;
+  display: block;
+}
+
+.subtitle {
+  font-size: 30rpx;
+  color: #888;
+  margin-top: 8rpx;
+  display: block;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  padding: 0 32rpx 32rpx;
+}
+
+.stat-item {
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 24rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
+}
+
+.stat-label {
+  font-size: 20rpx;
+  color: #94a3b8;
+  font-weight: bold;
+  display: block;
+}
+
+.stat-value {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #000;
+}
+
+.leader-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 32rpx 48rpx;
+  padding: 24rpx 32rpx;
+  background: #fff;
+  border-radius: 48rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
+}
+
+.leader-left {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+}
+
+.leader-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 32rpx;
+  background: rgba(7, 193, 96, 0.1);
+  flex-shrink: 0;
+}
+
+.leader-name {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #000;
+}
+
+.leader-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.leader-badge {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 24rpx;
+}
+
+.badge-icon {
+  font-size: 28rpx;
+}
+
+.badge-text {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.leader-arrow {
+  font-size: 44rpx;
+  color: #07C160;
+}
+
+.members-section {
+  padding: 0 32rpx 32rpx;
+}
+
+.members-title {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #94a3b8;
+  letter-spacing: 2rpx;
+  margin-bottom: 32rpx;
+  display: block;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  background: #fff;
+  border-radius: 48rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
+}
+
+.member-left {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.member-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 32rpx;
+  background: #f1f5f9;
+  flex-shrink: 0;
+}
+
+.member-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #000;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 12rpx;
+}
+
+.dot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #94a3b8;
+  font-size: 20rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot.passed {
+  background: #07C160;
+  color: #fff;
+}
+
+.member-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex-shrink: 0;
+}
+
+.member-badge {
+  font-size: 22rpx;
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.member-arrow {
+  font-size: 40rpx;
+  color: #07C160;
+}

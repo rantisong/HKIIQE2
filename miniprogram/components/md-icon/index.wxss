@@ -1,0 +1,24 @@
+.md-icon {
+  display: block;
+}
+
+/* 微信绿 - #07C160 */
+.md-icon.primary,
+.md-icon.brand {
+  filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(98%) contrast(92%);
+}
+
+/* Gray - #8a8a8a */
+.md-icon.muted {
+  filter: invert(55%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(90%);
+}
+
+/* White - for use on colored backgrounds */
+.md-icon.white {
+  filter: brightness(0) invert(1);
+}
+
+/* Success green - for correct/pass states */
+.md-icon.success {
+  filter: invert(42%) sepia(93%) saturate(500%) hue-rotate(87deg) brightness(95%) contrast(90%);
+}

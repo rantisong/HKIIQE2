@@ -1,0 +1,62 @@
+<scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="header">
+    <text class="title">你好，考生 👋</text>
+    <text class="subtitle">准备好今天的香港保险资格考试练习了吗？</text>
+  </view>
+
+  <view class="stats-card">
+    <view class="stats-header">
+      <view>
+        <text class="stats-label">模拟考试完成次数</text>
+        <view class="stats-value-row">
+          <text class="stats-value">25</text>
+          <text class="stats-unit">次</text>
+        </view>
+      </view>
+    </view>
+    <view class="stats-divider"></view>
+    <view class="stats-footer">
+      <view>
+        <text class="stats-small">今日目标</text>
+        <text class="stats-goal">模拟 5 次 | 通过 4 次</text>
+      </view>
+      <view class="progress-wrap">
+        <text class="stats-small">达成率 80%</text>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: 80%"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">考试科目</text>
+      <text class="section-link brand">全部卷别</text>
+    </view>
+    <view class="paper-list">
+      <view 
+        wx:for="{{papers}}" 
+        wx:key="id" 
+        class="paper-item tap-row"
+        data-index="{{index}}"
+        bindtap="onSelectPaper"
+        hover-class="tap-active"
+      >
+        <view class="paper-left">
+          <view class="paper-num">{{item.displayId}}</view>
+          <view class="paper-info">
+            <view class="paper-name-row">
+              <text class="paper-name">{{item.name}}：{{item.fullName}}</text>
+            </view>
+            <view class="paper-meta">
+              <text>累计通过 <text class="brand">{{item.completedCount}}次</text></text>
+              <text>最近通过率 <text class="brand">{{item.passRate}}%</text></text>
+            </view>
+          </view>
+        </view>
+        <view class="paper-arrow">›</view>
+      </view>
+    </view>
+  </view>
+</scroll-view>

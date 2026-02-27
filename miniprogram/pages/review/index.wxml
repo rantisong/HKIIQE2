@@ -1,0 +1,31 @@
+<scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="header">
+    <text class="title">我的题库 📚</text>
+    <text class="subtitle">温故而知新，助您顺利通过考试。</text>
+  </view>
+
+  <view class="section">
+    <text class="section-title">复习科目</text>
+    <view class="subject-list">
+      <view 
+        wx:for="{{subjects}}" 
+        wx:key="id" 
+        class="subject-item tap-row"
+        data-index="{{index}}"
+        bindtap="onSelectSubject"
+        hover-class="tap-active"
+      >
+        <view class="subject-left">
+          <view class="subject-num">{{item.id}}</view>
+          <view class="subject-info">
+            <view class="subject-name-row">
+              <text class="subject-name">{{item.name}}：{{item.fullName}}</text>
+            </view>
+            <text class="subject-meta">已收藏题目：<text class="brand">{{item.collected}}题</text></text>
+          </view>
+        </view>
+        <view class="subject-arrow">›</view>
+      </view>
+    </view>
+  </view>
+</scroll-view>

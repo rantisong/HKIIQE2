@@ -1,0 +1,48 @@
+<scroll-view wx:if="{{paper}}" scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="paper-header">
+    <view class="paper-info">
+      <text class="paper-label">当前科目</text>
+      <text class="paper-title">{{paper.name}}：{{paper.fullName}}</text>
+      <view class="paper-stats">
+        <view class="stat">
+          <text class="stat-label">试题数量</text>
+          <text class="stat-value">{{paper.questionCount}}题</text>
+        </view>
+        <view class="stat">
+          <text class="stat-label">通过评测</text>
+          <text class="stat-value">{{paper.completedCount}}次</text>
+        </view>
+        <view class="stat">
+          <text class="stat-label">平均通过率</text>
+          <text class="stat-value">{{paper.passRate}}%</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="random-card tap-row" data-exam-index="-1" bindtap="onStartExam" hover-class="tap-active">
+    <view class="random-left">
+      <view class="random-icon"><md-icon name="shuffle" size="40" colorClass="white"/></view>
+      <view class="random-info">
+        <text class="random-title">随机抽题练习</text>
+        <text class="random-desc">从题库中随机抽取{{paper.questionCount}}题进行模拟考试</text>
+      </view>
+    </view>
+    <view class="arrow-btn">›</view>
+  </view>
+
+  <view class="exam-list">
+    <text class="list-title">考试真题</text>
+    <view wx:for="{{examList}}" wx:key="title" class="exam-item tap-row" data-exam-index="{{index}}" bindtap="onStartExam" hover-class="tap-active">
+      <view class="exam-info">
+        <text class="exam-title">{{item.title}}</text>
+        <view class="exam-stats">
+          <text class="exam-stat">{{item.count}}题</text>
+          <text class="exam-stat">{{item.practiceCount}}次练习</text>
+          <text class="exam-stat">{{item.accuracyRate != null ? item.accuracyRate + '%' : '--'}}准确率</text>
+        </view>
+      </view>
+      <view class="arrow-btn">›</view>
+    </view>
+  </view>
+</scroll-view>

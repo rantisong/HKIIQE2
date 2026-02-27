@@ -1,0 +1,60 @@
+<view class="page" wx:if="{{paper && question}}">
+  <view class="header">
+    <view class="timer" wx:if="{{!isExamPaperMode}}">
+      <text class="timer-icon">⏱</text>
+      <text class="timer-text">{{timeText || '60:00'}}</text>
+    </view>
+    <view wx:if="{{isExamPaperMode}}" style="width: 1rpx;"></view>
+    <view class="progress-text">
+      <text class="brand">{{index + 1}}</text>
+      <text class="divider">/</text>
+      <text class="text-desc">{{questionCount || 75}}</text>
+    </view>
+  </view>
+
+  <view class="progress-bar">
+    <view class="progress-fill" style="width: {{questionCount ? (index + 1) / questionCount * 100 : (index + 1)}}%"></view>
+  </view>
+
+  <view class="scroll-wrapper">
+  <scroll-view scroll-y class="content hide-scrollbar" enhanced show-scrollbar="{{false}}">
+    <text class="question-text">{{question.text}}</text>
+
+    <view class="options {{isOptionsLocked ? 'locked' : ''}}">
+      <view 
+        wx:for="{{question.optionsList}}" 
+        wx:key="key"
+        class="option {{item.isSelected ? 'selected' : ''}} {{item.isCorrect ? 'correct' : ''}} {{item.isWrong ? 'wrong' : ''}} {{item.isDimmed ? 'dimmed' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onSelectOption"
+      >
+        <view class="option-circle">
+          <text wx:if="{{item.showCheck}}">✓</text>
+          <text wx:elif="{{item.showCross}}">✗</text>
+          <text wx:else>{{item.key}}</text>
+        </view>
+        <text class="option-text">{{item.text}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{answerRevealed}}" class="explanation">
+      <view class="explanation-header">
+        <view class="explanation-title">
+          <text class="explanation-icon">💡</text>
+          <text class="explanation-label">题目解析</text>
+        </view>
+        <text class="correct-answer">正确答案：<text class="brand">{{question.correctAnswerDisplay}}</text></text>
+      </view>
+      <text class="explanation-text">{{question.explanation}}</text>
+      <view class="explanation-en" wx:if="{{question.explanationEn}}">
+        <text>"{{question.explanationEn}}"</text>
+      </view>
+    </view>
+  </scroll-view>
+  </view>
+
+  <view class="footer">
+    <button class="btn prev" disabled="{{index === 0}}" bindtap="onPrev">‹ 上一题</button>
+    <button class="btn next" disabled="{{!answerRevealed && (!selectedAnswers || !selectedAnswers.length)}}" bindtap="onSubmitOrNext">{{answerRevealed ? (index >= (questionCount || 75) - 1 ? '完成考试' : '下一题') : '提交'}} ›</button>
+  </view>
+</view>

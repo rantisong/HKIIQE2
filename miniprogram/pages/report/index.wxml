@@ -1,0 +1,36 @@
+<scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="score-card">
+    <view class="score-ring">
+      <view class="score-value">90</view>
+      <text class="score-label">TOTAL SCORE</text>
+    </view>
+    <view class="pass-badge">🎉 考试通过 · 表现优异</view>
+  </view>
+
+  <view class="stats-grid">
+    <view class="stat-item">
+      <text class="stat-label">正确率</text>
+      <text class="stat-value success">90%</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-label">答题用时</text>
+      <text class="stat-value">18:24</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-label">同卷排名</text>
+      <text class="stat-value brand">Top 3%</text>
+    </view>
+  </view>
+
+  <view class="answer-overview">
+    <view class="overview-header">
+      <text class="overview-title">答题概况</text>
+      <text class="overview-hint">绿色为对, 红色为错</text>
+    </view>
+    <view class="answer-grid">
+      <view wx:for="{{answerDots}}" wx:key="num" class="answer-dot {{item.wrong ? 'wrong' : 'correct'}}">{{item.num}}</view>
+      <view class="answer-dot more">...</view>
+    </view>
+    <button class="back-btn" bindtap="onBack">返回练习首页</button>
+  </view>
+</scroll-view>

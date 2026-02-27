@@ -1,0 +1,56 @@
+<scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="header">
+    <text class="title">我的团队 🤝</text>
+    <text class="subtitle">一个人可以走很快，一群人才能走更远。</text>
+  </view>
+
+  <view class="stats-grid">
+    <view wx:for="{{stats}}" wx:key="label" class="stat-item">
+      <text class="stat-label">{{item.label}}</text>
+      <text class="stat-value">{{item.value}}</text>
+    </view>
+  </view>
+
+  <view class="leader-card" bindtap="onTeamLeaderTap">
+    <view class="leader-left">
+      <image class="leader-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jason" mode="aspectFill" />
+      <text class="leader-name">Jason Lee</text>
+    </view>
+    <view class="leader-right">
+      <view class="leader-badge">
+        <text class="badge-icon">👥</text>
+        <text class="badge-text">45人</text>
+      </view>
+      <text class="leader-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="members-section">
+    <text class="members-title">团队成员</text>
+    <view class="member-list">
+      <view wx:for="{{members}}" wx:key="id" class="member-item">
+        <view class="member-left">
+          <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill" />
+          <view class="member-info">
+            <text class="member-name">{{item.name}}</text>
+            <view class="progress-dots">
+              <view 
+                wx:for="{{item.dots}}" 
+                wx:for-item="d" 
+                wx:key="num"
+                class="dot {{d.passed ? 'passed' : ''}}"
+              >{{d.num}}</view>
+            </view>
+          </view>
+        </view>
+        <view class="member-right">
+          <view class="member-badge">
+            <text>👥</text>
+            <text>{{item.teamSize}}人</text>
+          </view>
+          <text class="member-arrow">›</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</scroll-view>

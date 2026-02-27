@@ -1,0 +1,40 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/review/index",
+    "pages/team/index",
+    "pages/profile/index",
+    "pages/paper-selection/index",
+    "pages/exam/index",
+    "pages/report/index",
+    "pages/review-session/index",
+    "pages/team-detail/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "HKIIQE",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F8FAFC",
+    "navigationStyle": "default"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#49454F",
+    "selectedColor": "#07C160",
+    "backgroundColor": "#F8FAFC",
+    "borderStyle": "black",
+    "list": [
+      {"pagePath": "pages/index/index", "text": "练习"},
+      {"pagePath": "pages/review/index", "text": "复习"},
+      {"pagePath": "pages/team/index", "text": "团队"},
+      {"pagePath": "pages/profile/index", "text": "我的"}
+    ]
+  },
+  "usingComponents": {
+    "md-icon": "/components/md-icon/index"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}
