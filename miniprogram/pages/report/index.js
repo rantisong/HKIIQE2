@@ -1,13 +1,44 @@
 const { getReport } = require('../../utils/api');
 
+function formatTimeSpent(seconds) {
+  if (seconds == null || seconds < 0) return '--';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
 Page({
   data: {
     record: null,
     answerDots: [],
-    loading: false
+    loading: false,
+    scoreValue: 0,
+    accuracyPercent: 0,
+    timeSpentText: '--',
+    passed: false,
+    passRatePercent: 0,
+    passCount: 0,
+    totalCount: 0,
+    fromExamResult: false
   },
 
   onLoad(options) {
+    const app = getApp();
+    const examResult = app.globalData.examResult;
+    if (examResult) {
+      this.setData({
+        scoreValue: examResult.accuracyPercent,
+        accuracyPercent: examResult.accuracyPercent,
+        timeSpentText: formatTimeSpent(examResult.timeSpent),
+        passed: examResult.passed,
+        passRatePercent: examResult.passRatePercent ?? 0,
+        passCount: examResult.passCount ?? 0,
+        totalCount: examResult.totalCount ?? 0,
+        fromExamResult: true
+      });
+      app.globalData.examResult = null;
+      return;
+    }
     if (options.id) {
       this.loadReport(options.id);
     }

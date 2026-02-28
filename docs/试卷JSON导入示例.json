@@ -1,0 +1,38 @@
+{
+  "paperType": "mock",
+  "subjectId": "01",
+  "name": "卷一",
+  "fullName": "保险原理及实务",
+  "questionCount": 75,
+  "durationMinutes": 120,
+  "questions": [
+    {
+      "id": "q1",
+      "type": "single",
+      "content": "在保险代理合同中，赋予代理人权力代表保险人收取保费并签发临时保单。这种权力通常被称为：",
+      "options": {
+        "A": "默示权限 (Implied Authority)",
+        "B": "明示权限 (Express Authority)",
+        "C": "表见权限 (Apparent Authority)",
+        "D": "追认权限 (Ratification)"
+      },
+      "correctAnswer": "B",
+      "explanation": "明示权限是指由授权书或代理合约明确授予的权力。",
+      "score": 10
+    },
+    {
+      "id": "q2",
+      "type": "single",
+      "content": "根据《保险业条例》，授权保险人在香港经营业务的法定权力归属于：",
+      "options": {
+        "A": "香港金融管理局 (HKMA)",
+        "B": "香港证监会 (SFC)",
+        "C": "保险业监管局 (IA)",
+        "D": "公司注册处"
+      },
+      "correctAnswer": "C",
+      "explanation": "保险业监管局是香港保险业的独立监管机构。",
+      "score": 10
+    }
+  ]
+}

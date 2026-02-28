@@ -1,0 +1,9 @@
+{
+  "name": "exam_getMockRandomQuestions",
+  "version": "1.0.0",
+  "description": "从指定科目模拟题库随机抽题",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

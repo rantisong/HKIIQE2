@@ -1,24 +1,24 @@
 <scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
   <view class="score-card">
     <view class="score-ring">
-      <view class="score-value">90</view>
+      <view class="score-value">{{fromExamResult ? scoreValue : (record && record.score != null ? record.score : '--')}}</view>
       <text class="score-label">TOTAL SCORE</text>
     </view>
-    <view class="pass-badge">🎉 考试通过 · 表现优异</view>
+    <view class="pass-badge {{passed ? '' : 'fail'}}">{{passed ? '🎉 考试通过 · 表现优异' : '未达到 70% 合格线'}}</view>
   </view>
 
   <view class="stats-grid">
     <view class="stat-item">
       <text class="stat-label">正确率</text>
-      <text class="stat-value success">90%</text>
+      <text class="stat-value success">{{fromExamResult ? accuracyPercent + '%' : (record ? (record.accuracyPercent != null ? record.accuracyPercent + '%' : '--') : '--')}}</text>
     </view>
     <view class="stat-item">
       <text class="stat-label">答题用时</text>
-      <text class="stat-value">18:24</text>
+      <text class="stat-value">{{fromExamResult ? timeSpentText : (record && record.timeSpent != null ? record.timeSpentText : '--')}}</text>
     </view>
-    <view class="stat-item">
-      <text class="stat-label">同卷排名</text>
-      <text class="stat-value brand">Top 3%</text>
+    <view class="stat-item" wx:if="{{fromExamResult && totalCount > 0}}">
+      <text class="stat-label">累计通过</text>
+      <text class="stat-value brand">{{passCount}}次 / {{passRatePercent}}%</text>
     </view>
   </view>
 
@@ -27,9 +27,8 @@
       <text class="overview-title">答题概况</text>
       <text class="overview-hint">绿色为对, 红色为错</text>
     </view>
-    <view class="answer-grid">
+    <view class="answer-grid" wx:if="{{answerDots.length > 0}}">
       <view wx:for="{{answerDots}}" wx:key="num" class="answer-dot {{item.wrong ? 'wrong' : 'correct'}}">{{item.num}}</view>
-      <view class="answer-dot more">...</view>
     </view>
     <button class="back-btn" bindtap="onBack">返回练习首页</button>
   </view>

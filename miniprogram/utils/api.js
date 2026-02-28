@@ -32,16 +32,35 @@ const updateUserProfile = (profile) => callCloud('user_updateUserProfile', { pro
  * @param {number} page 页码
  * @param {number} pageSize 每页数量
  * @param {string} category 分类筛选
+ * @param {string} paperType mock|real
+ * @param {string} subjectId 科目ID（01~05，仅 mock 时有效）
  */
-const getPaperList = (page = 1, pageSize = 10, category = '') =>
-  callCloud('exam_getPaperList', { page, pageSize, category });
+const getPaperList = (page = 1, pageSize = 10, category = '', paperType = '', subjectId = '') =>
+  callCloud('exam_getPaperList', { page, pageSize, category, paperType, subjectId });
 
 /**
- * 获取试卷详情
+ * 获取试卷详情（含完整题目）
  * @param {string} paperId 试卷ID
+ * @param {string} paperType 'mock'|'real' 不传则先查真题再查模拟
  */
-const getPaperDetail = (paperId) =>
-  callCloud('exam_getPaperDetail', { paperId });
+const getPaperDetail = (paperId, paperType = '') =>
+  callCloud('exam_getPaperDetail', { paperId, paperType });
+
+/**
+ * 从指定科目的模拟题库中随机抽取题目（云端抽题，仅返回指定数量，避免大包）
+ * @param {string} subjectId 科目 01～05
+ * @param {number} count 抽取数量，默认 75
+ */
+const getMockRandomQuestions = (subjectId, count = 75) =>
+  callCloud('exam_getMockRandomQuestions', { subjectId, count });
+
+/**
+ * 从 JSON 导入试卷（fileId 或 content）
+ * @param {string} fileId 云存储文件 ID
+ * @param {object} content 试卷 JSON 内容
+ */
+const importPaperFromJson = (fileId = '', content = null) =>
+  callCloud('paper_importFromJson', { fileId: fileId || undefined, content: content || undefined });
 
 /**
  * 获取答题记录列表
@@ -157,6 +176,8 @@ module.exports = {
   updateUserProfile,
   getPaperList,
   getPaperDetail,
+  getMockRandomQuestions,
+  importPaperFromJson,
   getRecordList,
   submitAnswer,
   getReport,

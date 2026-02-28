@@ -9,12 +9,12 @@
           <text class="stat-value">{{paper.questionCount}}题</text>
         </view>
         <view class="stat">
-          <text class="stat-label">通过评测</text>
-          <text class="stat-value">{{paper.completedCount}}次</text>
+          <text class="stat-label">考试时间</text>
+          <text class="stat-value">{{paper.durationMinutes || '--'}}分钟</text>
         </view>
         <view class="stat">
-          <text class="stat-label">平均通过率</text>
-          <text class="stat-value">{{paper.passRate}}%</text>
+          <text class="stat-label">通过评测</text>
+          <text class="stat-value">{{paper.completedCount}}次</text>
         </view>
       </view>
     </view>
@@ -33,7 +33,7 @@
 
   <view class="exam-list">
     <text class="list-title">考试真题</text>
-    <view wx:for="{{examList}}" wx:key="title" class="exam-item tap-row" data-exam-index="{{index}}" bindtap="onStartExam" hover-class="tap-active">
+    <view wx:for="{{examList}}" wx:key="_id" class="exam-item tap-row" data-exam-index="{{index}}" bindtap="onStartExam" hover-class="tap-active">
       <view class="exam-info">
         <text class="exam-title">{{item.title}}</text>
         <view class="exam-stats">

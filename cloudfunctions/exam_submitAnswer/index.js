@@ -13,9 +13,12 @@ exports.main = async (event, context) => {
   const { paperId, answers, timeSpent } = event;
 
   try {
-    // 获取试卷信息
-    const paperRes = await db.collection('papers').doc(paperId).get();
+    // 获取试卷信息（真题在 real_papers，模拟答题不落库故仅查真题）
+    const paperRes = await db.collection('real_papers').doc(paperId).get();
     const paper = paperRes.data;
+    if (!paper || !paper.questions) {
+      return { success: false, error: '试卷不存在或非真题' };
+    }
 
     // 计算得分
     let correctCount = 0;

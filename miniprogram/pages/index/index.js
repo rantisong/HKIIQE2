@@ -1,4 +1,6 @@
 const { PAPERS } = require('../../utils/constants');
+const { getExamStats, getPassRatePercent } = require('../../utils/examStats');
+const { getPaperList } = require('../../utils/api');
 
 Page({
   data: {
@@ -14,17 +16,52 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
+    this.loadPapers();
   },
 
-  loadPapers() {
+  async loadPapers() {
     this.setData({ loading: true });
-    // 使用 constants 中的五个考试科目（卷一～卷五）作为展示列表
-    const papers = PAPERS.map((p, index) => ({
+    const { passCount } = getExamStats();
+    const passRatePercent = getPassRatePercent();
+    const defaultPapers = PAPERS.map((p, index) => ({
       ...p,
-      displayId: String(index + 1).padStart(2, '0')
+      displayId: String(index + 1).padStart(2, '0'),
+      completedCount: passCount,
+      passRate: passRatePercent
     }));
-    this.setData({ papers, loading: false });
-    // 若已部署云函数 exam_getPaperList，可在此调用 getPaperList 合并云端数据
+
+    try {
+      const res = await getPaperList(1, 20, '', 'mock');
+      if (res.result && res.result.success && res.result.data.list && res.result.data.list.length > 0) {
+        const cloudList = res.result.data.list;
+        const papers = PAPERS.map((p, index) => {
+          const subjectId = String(p.id).padStart(2, '0');
+          const cloudPaper = cloudList.find(c => String(c.subjectId || c.id || '').padStart(2, '0') === subjectId);
+          const base = cloudPaper ? {
+            id: cloudPaper._id,
+            name: cloudPaper.name || p.name,
+            fullName: cloudPaper.fullName || p.fullName,
+            questionCount: cloudPaper.questionCount || p.questionCount,
+            durationMinutes: cloudPaper.durationMinutes || p.durationMinutes,
+            paperType: 'mock',
+            subjectId: cloudPaper.subjectId || subjectId
+          } : { ...p };
+          return {
+            ...base,
+            displayId: String(index + 1).padStart(2, '0'),
+            completedCount: passCount,
+            passRate: passRatePercent
+          };
+        });
+        this.setData({ papers });
+      } else {
+        this.setData({ papers: defaultPapers });
+      }
+    } catch (e) {
+      this.setData({ papers: defaultPapers });
+    } finally {
+      this.setData({ loading: false });
+    }
   },
 
   onSelectPaper(e) {

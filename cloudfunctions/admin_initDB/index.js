@@ -244,6 +244,44 @@ const initSamplePapers = async () => {
   return { status: 'created', count: samplePapers.length };
 };
 
+// 清空指定集合内所有文档（用于清理脏数据）
+const clearCollection = async (collectionName) => {
+  const col = db.collection(collectionName);
+  let totalDeleted = 0;
+  const batchSize = 20;
+  while (true) {
+    const res = await col.limit(batchSize).get();
+    if (!res.data || res.data.length === 0) break;
+    for (const doc of res.data) {
+      await col.doc(doc._id).remove();
+      totalDeleted += 1;
+    }
+  }
+  return totalDeleted;
+};
+
+// 清理脏数据：清空已废弃的 papers 集合（模拟题/真题已改用 mock_bank、real_papers）
+const cleanDirtyData = async (event) => {
+  const { onlyPapers = true } = event;
+  const results = {};
+  try {
+    results.papers = await clearCollection('papers');
+    if (!onlyPapers) {
+      results.mock_bank = await clearCollection('mock_bank');
+      results.real_papers = await clearCollection('real_papers');
+    }
+    return {
+      success: true,
+      message: onlyPapers
+        ? '已清空废弃的 papers 集合（mock_bank、real_papers 未动）'
+        : '已清空 papers、mock_bank、real_papers',
+      deleted: results,
+    };
+  } catch (e) {
+    return { success: false, error: e.message, deleted: results };
+  }
+};
+
 exports.main = async (event, context) => {
   const { action } = event;
 
@@ -257,6 +295,8 @@ exports.main = async (event, context) => {
         const collections = await initCollections();
         const papers = await initSamplePapers();
         return { collections, papers };
+      case 'clean_dirty':
+        return await cleanDirtyData(event);
       default:
         return { message: 'No action specified' };
     }

@@ -5,7 +5,6 @@
   </view>
 
   <view class="section">
-    <text class="section-title">复习科目</text>
     <view class="subject-list">
       <view 
         wx:for="{{subjects}}" 

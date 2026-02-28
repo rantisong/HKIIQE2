@@ -1,0 +1,1 @@
+{"name":"paper_importFromJson","version":"1.0.0","description":"Import paper from JSON (cloud file or content)","main":"index.js","dependencies":{"wx-server-sdk":"~2.6.3"}}

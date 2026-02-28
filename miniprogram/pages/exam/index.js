@@ -1,4 +1,15 @@
 const { MOCK_QUESTIONS } = require('../../utils/constants');
+const { recordExamResult } = require('../../utils/examStats');
+
+function ensureOptionsObject(opts) {
+  if (!opts) return {};
+  if (typeof opts === 'object' && !Array.isArray(opts)) return opts;
+  const arr = Array.isArray(opts) ? opts : [];
+  return arr.reduce((o, t, i) => {
+    o['ABCDE'[i]] = t;
+    return o;
+  }, {});
+}
 
 Page({
   data: {
@@ -9,6 +20,7 @@ Page({
     questionStates: {},      // { [index]: { selectedAnswers, answerRevealed } } 已答题目的选择与结果
     isOptionsLocked: false,  // 当前题目是否已答（不可修改）
     secondsLeft: 3600,
+    initialSeconds: 3600,    // 用于计算答题用时
     question: null,
     questions: MOCK_QUESTIONS
   },
@@ -21,13 +33,21 @@ Page({
       return;
     }
     const isExamPaperMode = !!examPaper;
+    const questions = app.globalData.selectedPaperQuestions || MOCK_QUESTIONS;
     const questionCount = examPaper ? examPaper.questionCount : (paper.questionCount || 75);
-    const q = MOCK_QUESTIONS[0];
-    const question = this._prepareQuestion(q, [], false);
-    const data = { paper, examPaper, question, questionCount, isExamPaperMode };
+    const q0 = questions[0];
+    const question = q0 ? this._prepareQuestion(q0, [], false) : null;
+    if (!questions || questions.length === 0) {
+      wx.showToast({ title: '暂无题目', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
+      return;
+    }
+    const data = { paper, examPaper, question, questionCount, isExamPaperMode, questions };
     if (!isExamPaperMode) {
       const durationMinutes = paper.durationMinutes || 120;
-      data.secondsLeft = durationMinutes * 60;
+      const total = durationMinutes * 60;
+      data.secondsLeft = total;
+      data.initialSeconds = total;
     }
     if (paper) {
       wx.setNavigationBarTitle({
@@ -55,6 +75,7 @@ Page({
   },
   onTimeUp() {
     wx.showToast({ title: '时间到，自动提交', icon: 'none' });
+    // 中途超时未完成全部题目并提交，不记录模拟考试次数
     wx.redirectTo({ url: '/pages/report/index' });
   },
   onUnload() {
@@ -65,11 +86,12 @@ Page({
     return String(correctAnswer).split(/[,，、\s]+/).map(s => s.trim().toUpperCase()).filter(Boolean);
   },
   _prepareQuestion(q, selectedAnswers = [], answerRevealed = false) {
+    const opts = ensureOptionsObject(q.options);
     const correctAnswersList = this._parseCorrectAnswers(q.correctAnswer);
     const selected = Array.isArray(selectedAnswers) ? selectedAnswers : [];
     const correctSet = new Set(correctAnswersList);
     const selectedSet = new Set(selected);
-    const optionsList = Object.entries(q.options).map(([key, text]) => {
+    const optionsList = Object.entries(opts).map(([key, text]) => {
       const inCorrectSet = correctSet.has(key);
       const isSelected = selectedSet.has(key);
       const isCorrect = answerRevealed && inCorrectSet;
@@ -81,6 +103,7 @@ Page({
     });
     return {
       ...q,
+      text: q.text || q.content || '',
       optionsList,
       correctAnswersList,
       correctAnswerDisplay: correctAnswersList.join('、')
@@ -115,7 +138,8 @@ Page({
     }
   },
   loadQuestionAtIndex(idx) {
-    const q = MOCK_QUESTIONS[idx % MOCK_QUESTIONS.length];
+    const qList = this.data.questions || MOCK_QUESTIONS;
+    const q = qList[idx % qList.length];
     const saved = this.data.questionStates[idx];
     const ans = saved ? (saved.selectedAnswers || (saved.selectedAnswer ? [saved.selectedAnswer] : [])) : [];
     const revealed = saved ? saved.answerRevealed : false;
@@ -141,10 +165,45 @@ Page({
     this.saveCurrentState();
     this.loadQuestionAtIndex(index - 1);
   },
+  _computeCorrectCount() {
+    const { questionStates, questionCount, questions } = this.data;
+    const total = questionCount || 75;
+    const qList = questions || MOCK_QUESTIONS;
+    let correct = 0;
+    for (let i = 0; i < total; i++) {
+      const saved = questionStates[i];
+      if (!saved || !saved.answerRevealed) continue;
+      const q = qList[i % qList.length];
+      const correctList = this._parseCorrectAnswers(q.correctAnswer);
+      const selected = saved.selectedAnswers || (saved.selectedAnswer ? [saved.selectedAnswer] : []);
+      if (this._isAnswerCorrect(selected, correctList)) correct += 1;
+    }
+    return correct;
+  },
   onNext() {
     const index = this.data.index;
     const questionCount = this.data.questionCount || 75;
     if (index >= questionCount - 1) {
+      this.saveCurrentState();
+      const questionStates = this.data.questionStates || {};
+      const answeredCount = Object.keys(questionStates).length;
+      if (answeredCount >= questionCount) {
+        const correctCount = this._computeCorrectCount();
+        const result = recordExamResult(correctCount, questionCount);
+        const timeSpent = Math.max(0, (this.data.initialSeconds || 0) - this.data.secondsLeft);
+        getApp().globalData.examResult = {
+          questionCount,
+          correctCount,
+          passed: result.passed,
+          accuracyPercent: Math.round((correctCount / questionCount) * 100),
+          timeSpent,
+          totalCount: result.totalCount,
+          passCount: result.passCount,
+          passRatePercent: result.passRatePercent
+        };
+      } else {
+        getApp().globalData.examResult = null;
+      }
       wx.redirectTo({ url: '/pages/report/index' });
       return;
     }
