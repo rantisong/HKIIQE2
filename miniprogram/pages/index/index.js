@@ -1,4 +1,4 @@
-const { getPaperList } = require('../../utils/api');
+const { PAPERS } = require('../../utils/constants');
 
 Page({
   data: {
@@ -16,33 +16,15 @@ Page({
     }
   },
 
-  async loadPapers() {
+  loadPapers() {
     this.setData({ loading: true });
-    
-    try {
-      const res = await getPaperList(1, 20);
-      
-      if (res.result && res.result.success) {
-        const papers = res.result.data.list.map((p, index) => ({
-          ...p,
-          displayId: String(index + 1).padStart(2, '0')
-        }));
-        this.setData({ papers });
-      } else {
-        wx.showToast({
-          title: '加载失败',
-          icon: 'none'
-        });
-      }
-    } catch (error) {
-      console.error('加载试卷失败:', error);
-      wx.showToast({
-        title: '加载失败',
-        icon: 'none'
-      });
-    } finally {
-      this.setData({ loading: false });
-    }
+    // 使用 constants 中的五个考试科目（卷一～卷五）作为展示列表
+    const papers = PAPERS.map((p, index) => ({
+      ...p,
+      displayId: String(index + 1).padStart(2, '0')
+    }));
+    this.setData({ papers, loading: false });
+    // 若已部署云函数 exam_getPaperList，可在此调用 getPaperList 合并云端数据
   },
 
   onSelectPaper(e) {
@@ -58,8 +40,7 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.loadPapers().then(() => {
-      wx.stopPullDownRefresh();
-    });
+    this.loadPapers();
+    wx.stopPullDownRefresh();
   }
 });
