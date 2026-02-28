@@ -161,3 +161,16 @@
   color: #888;
 }
 
+.exam-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200rpx;
+}
+
+.exam-empty-text {
+  font-size: 24rpx;
+  font-style: italic;
+  color: #999;
+}
+

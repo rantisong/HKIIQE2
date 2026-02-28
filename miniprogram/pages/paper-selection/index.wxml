@@ -33,16 +33,24 @@
 
   <view class="exam-list">
     <text class="list-title">考试真题</text>
-    <view wx:for="{{examList}}" wx:key="_id" class="exam-item tap-row" data-exam-index="{{index}}" bindtap="onStartExam" hover-class="tap-active">
-      <view class="exam-info">
-        <text class="exam-title">{{item.title}}</text>
-        <view class="exam-stats">
-          <text class="exam-stat">{{item.count}}题</text>
-          <text class="exam-stat">{{item.practiceCount}}次练习</text>
-          <text class="exam-stat">{{item.accuracyRate != null ? item.accuracyRate + '%' : '--'}}准确率</text>
+    <block wx:if="{{examList.length > 0}}">
+      <view wx:for="{{examList}}" wx:key="_id" class="exam-item tap-row" data-exam-index="{{index}}" bindtap="onStartExam" hover-class="tap-active">
+        <view class="exam-info">
+          <text class="exam-title">{{item.title}}</text>
+          <view class="exam-stats">
+            <text class="exam-stat">{{item.count}}题</text>
+            <text class="exam-stat">{{item.practiceCount}}次练习</text>
+            <text class="exam-stat">{{item.accuracyRate != null ? item.accuracyRate + '%' : '--'}}准确率</text>
+          </view>
         </view>
+        <view class="arrow-btn">›</view>
       </view>
-      <view class="arrow-btn">›</view>
+    </block>
+    <view wx:elif="{{examListLoading}}" class="exam-empty">
+      <text class="exam-empty-text">加载中......</text>
+    </view>
+    <view wx:else class="exam-empty">
+      <text class="exam-empty-text">该科目还没有上传真题。</text>
     </view>
   </view>
 </scroll-view>

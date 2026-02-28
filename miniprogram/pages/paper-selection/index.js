@@ -1,5 +1,20 @@
 const { getPaperDetail, getPaperList, getMockRandomQuestions } = require('../../utils/api');
 
+// 随机抽题缓存有效期（毫秒），超时视为异常退出/未完成，下次进入清除并重新抽题
+const RANDOM_PRACTICE_CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+
+function getRandomPracticeCacheKey(subjectId) {
+  return `randomPracticeCache_mock_${String(subjectId || '').trim()}`;
+}
+
+function isRandomPracticeCacheValid(cache, subjectId, questionCount) {
+  if (!cache || cache.subjectId !== subjectId || cache.questionCount !== questionCount) return false;
+  if (!Array.isArray(cache.questions) || cache.questions.length === 0) return false;
+  const age = typeof cache.cachedAt === 'number' ? Date.now() - cache.cachedAt : Infinity;
+  if (age > RANDOM_PRACTICE_CACHE_MAX_AGE_MS) return false;
+  return true;
+}
+
 // 从 paper 解析出 01～05 的 subjectId（科目一为 01）
 function getSubjectIdFromPaper(paper) {
   if (!paper) return '';
@@ -36,6 +51,7 @@ Page({
     paper: null,
     mockPaper: null,
     examList: [],
+    examListLoading: false,
     loading: false
   },
 
@@ -56,7 +72,7 @@ Page({
     }
     this.setData({ paper, loading: true });
     try {
-      await Promise.all([this.loadMockPaper(paper), this.loadRealPapers()]);
+      await Promise.all([this.loadMockPaper(paper), this.loadRealPapers(paper)]);
     } finally {
       this.setData({ loading: false });
     }
@@ -93,9 +109,17 @@ Page({
     }
   },
 
-  async loadRealPapers() {
+  async loadRealPapers(paper) {
+    const currentPaper = paper != null ? paper : this.data.paper;
+    const subjectId = getSubjectIdFromPaper(currentPaper);
+    // 仅在有明确科目（01～05）时拉取该科目的真题，确保试卷一的真题只出现在试卷一
+    if (!subjectId || subjectId.length !== 2 || !/^0[1-5]$/.test(subjectId)) {
+      this.setData({ examList: [], examListLoading: false });
+      return;
+    }
+    this.setData({ examList: [], examListLoading: true });
     try {
-      const res = await getPaperList(1, 20, '', 'real');
+      const res = await getPaperList(1, 20, '', 'real', subjectId);
       if (res.result && res.result.success && res.result.data.list && res.result.data.list.length > 0) {
         const examList = res.result.data.list.map(p => ({
           ...p,
@@ -104,10 +128,13 @@ Page({
           practiceCount: p.practiceCount || 0,
           accuracyRate: p.accuracyRate != null ? p.accuracyRate : null
         }));
-        this.setData({ examList });
+        this.setData({ examList, examListLoading: false });
+      } else {
+        this.setData({ examList: [], examListLoading: false });
       }
     } catch (e) {
       console.warn('loadRealPapers', e);
+      this.setData({ examList: [], examListLoading: false });
     }
   },
 
@@ -117,11 +144,8 @@ Page({
       const resReal = await getPaperDetail(paperId, 'real');
       if (resReal.result && resReal.result.success && resReal.result.data) {
         const data = resReal.result.data;
-        this.setData({
-          paper: data,
-          mockPaper: null,
-          examList: [{ ...data, title: data.name || data.title, count: data.questionCount || 75 }]
-        });
+        this.setData({ paper: data, mockPaper: null });
+        await this.loadRealPapers(data);
         this.setData({ loading: false });
         return;
       }
@@ -129,7 +153,7 @@ Page({
       if (resMock.result && resMock.result.success && resMock.result.data) {
         const data = resMock.result.data;
         this.setData({ paper: data, mockPaper: data });
-        await this.loadRealPapers();
+        await this.loadRealPapers(data);
       } else {
         wx.showToast({ title: '加载失败', icon: 'none' });
       }
@@ -182,6 +206,26 @@ Page({
         wx.showToast({ title: '无法识别当前科目', icon: 'none' });
         return;
       }
+
+      // 若用户中途退出/返回，再次进入时复用本次已抽取的题目集；过期或异常退出后的缓存视为无效并清除
+      try {
+        const cacheKey = getRandomPracticeCacheKey(subjectId);
+        const cache = wx.getStorageSync(cacheKey);
+        if (isRandomPracticeCacheValid(cache, subjectId, count)) {
+          selectedPaperQuestions = cache.questions.map(normalizeQuestion);
+          selectedExamPaper = null;
+        } else if (cache && (cache.cachedAt != null || cache.questions != null)) {
+          wx.removeStorageSync(cacheKey);
+        }
+      } catch (e) {}
+
+      if (selectedPaperQuestions && selectedPaperQuestions.length > 0) {
+        app.globalData.selectedExamPaper = selectedExamPaper;
+        app.globalData.selectedPaperQuestions = selectedPaperQuestions;
+        wx.navigateTo({ url: '/pages/exam/index' });
+        return;
+      }
+
       wx.showLoading({ title: '抽题中…' });
       let questions = [];
       let cloudError = '';
@@ -230,6 +274,16 @@ Page({
       }
       selectedPaperQuestions = questions.map(normalizeQuestion);
       selectedExamPaper = null;
+
+      // 抽题成功后缓存本次题目集，待完成答题后清除
+      try {
+        wx.setStorageSync(getRandomPracticeCacheKey(subjectId), {
+          subjectId,
+          questionCount: count,
+          cachedAt: Date.now(),
+          questions: selectedPaperQuestions
+        });
+      } catch (e) {}
     }
 
     if (!selectedPaperQuestions || selectedPaperQuestions.length === 0) {

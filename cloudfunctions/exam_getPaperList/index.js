@@ -29,8 +29,23 @@ exports.main = async (event, context) => {
 
     if (paperType === 'real') {
       const col = db.collection('real_papers');
-      const res = await col
-        .orderBy('createdAt', 'desc')
+      const subjectIdStr = subjectId != null ? String(subjectId).trim() : '';
+      const filterBySubject = subjectIdStr && /^0[1-5]$/.test(subjectIdStr);
+
+      if (filterBySubject) {
+        // 严格按科目筛选：先取列表再在内存中过滤，确保试卷一真题只出现在 subjectId=01 的请求中
+        const allRes = await col.orderBy('createdAt', 'desc').limit(200).get();
+        const all = allRes.data || [];
+        const filtered = all.filter((d) => String(d.subjectId || '').trim() === subjectIdStr);
+        const start = (page - 1) * pageSize;
+        const list = filtered.slice(start, start + pageSize);
+        return {
+          success: true,
+          data: { list, total: filtered.length, page, pageSize }
+        };
+      }
+
+      const res = await col.orderBy('createdAt', 'desc')
         .skip((page - 1) * pageSize)
         .limit(pageSize)
         .get();

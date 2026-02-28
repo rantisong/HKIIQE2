@@ -1,6 +1,28 @@
 const { MOCK_QUESTIONS } = require('../../utils/constants');
 const { recordExamResult } = require('../../utils/examStats');
 
+function getSubjectIdFromPaper(paper) {
+  if (!paper) return '';
+  const s = String(paper.subjectId ?? paper.id ?? '').trim();
+  if (/^\d{1,2}$/.test(s)) return s.padStart(2, '0');
+  const name = String(paper.name || '').trim();
+  const map = { '卷一': '01', '卷二': '02', '卷三': '03', '卷四': '04', '卷五': '05' };
+  return map[name] || '';
+}
+
+// 与试卷选择页一致：缓存超过此时长视为异常退出，不再复用
+const RANDOM_PRACTICE_CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+
+function getRandomPracticeCacheKey(subjectId) {
+  return `randomPracticeCache_mock_${String(subjectId || '').trim()}`;
+}
+
+function isRandomPracticeCacheValid(cache, subjectId) {
+  if (!cache || cache.subjectId !== subjectId || !Array.isArray(cache.questions) || cache.questions.length === 0) return false;
+  const age = typeof cache.cachedAt === 'number' ? Date.now() - cache.cachedAt : Infinity;
+  return age <= RANDOM_PRACTICE_CACHE_MAX_AGE_MS;
+}
+
 function ensureOptionsObject(opts) {
   if (!opts) return {};
   if (typeof opts === 'object' && !Array.isArray(opts)) return opts;
@@ -33,7 +55,22 @@ Page({
       return;
     }
     const isExamPaperMode = !!examPaper;
-    const questions = app.globalData.selectedPaperQuestions || MOCK_QUESTIONS;
+    let questions = app.globalData.selectedPaperQuestions || null;
+    // 随机抽题练习：若用户中途退出/返回，优先从本地缓存恢复；过期或异常退出后的缓存清除并不复用
+    if (!isExamPaperMode && (!questions || questions.length === 0)) {
+      try {
+        const subjectId = getSubjectIdFromPaper(paper);
+        const cacheKey = getRandomPracticeCacheKey(subjectId);
+        const cache = wx.getStorageSync(cacheKey);
+        if (isRandomPracticeCacheValid(cache, subjectId)) {
+          questions = cache.questions;
+          app.globalData.selectedPaperQuestions = questions;
+        } else if (cache && (cache.cachedAt != null || cache.questions != null)) {
+          wx.removeStorageSync(cacheKey);
+        }
+      } catch (e) {}
+    }
+    questions = questions && questions.length > 0 ? questions : MOCK_QUESTIONS;
     const questionCount = examPaper ? examPaper.questionCount : (paper.questionCount || 75);
     const q0 = questions[0];
     const question = q0 ? this._prepareQuestion(q0, [], false) : null;
@@ -55,6 +92,7 @@ Page({
       });
     }
     this.setData({ ...data, isOptionsLocked: false });
+    this._examCompletedOrTimeUp = false;
     if (!isExamPaperMode) this.startTimer();
   },
   startTimer() {
@@ -64,22 +102,53 @@ Page({
       return `${mm.toString().padStart(2, '0')}:${ss.toString().padStart(2, '0')}`;
     };
     this.setData({ timeText: fmt(this.data.secondsLeft) });
-    this.timer = setInterval(() => {
-      let secondsLeft = this.data.secondsLeft - 1;
-      this.setData({ secondsLeft, timeText: fmt(secondsLeft) });
-      if (secondsLeft <= 0) {
-        clearInterval(this.timer);
-        this.onTimeUp();
+    const app = getApp();
+    app._examTimerActive = true;
+    const page = this;
+    const timerId = setInterval(() => {
+      try {
+        if (!app._examTimerActive) {
+          clearInterval(timerId);
+          return;
+        }
+        const secondsLeft = page.data.secondsLeft - 1;
+        page.setData({ secondsLeft, timeText: fmt(secondsLeft) });
+        if (secondsLeft <= 0) {
+          app._examTimerActive = false;
+          clearInterval(timerId);
+          page.timer = null;
+          page.onTimeUp();
+        }
+      } catch (e) {
+        app._examTimerActive = false;
+        try { clearInterval(timerId); } catch (_) {}
       }
     }, 1000);
+    this.timer = timerId;
   },
   onTimeUp() {
     wx.showToast({ title: '时间到，自动提交', icon: 'none' });
-    // 中途超时未完成全部题目并提交，不记录模拟考试次数
+    this._examCompletedOrTimeUp = true;
+    try {
+      const subjectId = getSubjectIdFromPaper(this.data.paper);
+      wx.removeStorageSync(getRandomPracticeCacheKey(subjectId));
+    } catch (e) {}
     wx.redirectTo({ url: '/pages/report/index' });
   },
   onUnload() {
-    if (this.timer) clearInterval(this.timer);
+    const app = getApp();
+    if (app) app._examTimerActive = false;
+    if (this.timer) {
+      try { clearInterval(this.timer); } catch (e) {}
+      this.timer = null;
+    }
+    // 未正常完成考试（返回、崩溃、被杀进程等）：清除随机抽题缓存，下次进入将重新抽题
+    if (!this._examCompletedOrTimeUp && !this.data.examPaper) {
+      try {
+        const subjectId = getSubjectIdFromPaper(this.data.paper);
+        if (subjectId) wx.removeStorageSync(getRandomPracticeCacheKey(subjectId));
+      } catch (e) {}
+    }
   },
   _parseCorrectAnswers(correctAnswer) {
     if (!correctAnswer) return [];
@@ -204,6 +273,11 @@ Page({
       } else {
         getApp().globalData.examResult = null;
       }
+      this._examCompletedOrTimeUp = true;
+      try {
+        const subjectId = getSubjectIdFromPaper(this.data.paper);
+        wx.removeStorageSync(getRandomPracticeCacheKey(subjectId));
+      } catch (e) {}
       wx.redirectTo({ url: '/pages/report/index' });
       return;
     }
