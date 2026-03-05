@@ -28,12 +28,6 @@ const getUserInfo = (profile) => {
  */
 const getProfile = () => callCloud('user_getProfile', {});
 
-/**
- * 更新用户信息
- * @param {object} profile 用户资料 { nickname, avatar }
- */
-const updateUserProfile = (profile) => callCloud('user_updateUserProfile', { profile });
-
 // ============ 考试模块 ============
 
 /**
@@ -110,20 +104,6 @@ const getTeamList = (page = 1, pageSize = 10) =>
 const createTeam = (teamInfo) =>
   callCloud('team_createTeam', teamInfo);
 
-/**
- * 加入团队
- * @param {string} teamId 团队ID
- */
-const joinTeam = (teamId) =>
-  callCloud('team_joinTeam', { teamId });
-
-/**
- * 获取团队详情
- * @param {string} teamId 团队ID
- */
-const getTeamDetail = (teamId) =>
-  callCloud('team_getTeamDetail', { teamId });
-
 // ============ 复习模块 ============
 
 /**
@@ -190,7 +170,6 @@ const uploadImage = (filePath, prefix = 'avatars') => {
 module.exports = {
   getUserInfo,
   getProfile,
-  updateUserProfile,
   getPaperList,
   getPaperDetail,
   getMockRandomQuestions,
@@ -200,8 +179,6 @@ module.exports = {
   getReport,
   getTeamList,
   createTeam,
-  joinTeam,
-  getTeamDetail,
   getReviewList,
   getReviewQuestions,
   toggleReviewFavorite,
