@@ -1,4 +1,5 @@
 const { getPaperDetail, getPaperList, getMockRandomQuestions } = require('../../utils/api');
+const { requireLogin } = require('../../utils/auth');
 
 // 随机抽题缓存有效期（毫秒），超时视为异常退出/未完成，下次进入清除并重新抽题
 const RANDOM_PRACTICE_CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000;
@@ -55,7 +56,10 @@ Page({
     loading: false
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    const returnUrl = '/pages/paper-selection/index' + (options.id ? '?id=' + options.id : '');
+    const ok = await requireLogin(returnUrl);
+    if (!ok) return;
     if (options.id) {
       this.loadPaperDetail(options.id);
     } else {

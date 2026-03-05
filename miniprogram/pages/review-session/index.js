@@ -1,4 +1,5 @@
 const { MOCK_QUESTIONS } = require('../../utils/constants');
+const { requireLogin } = require('../../utils/auth');
 
 Page({
   data: {
@@ -9,7 +10,9 @@ Page({
     mockUserChoice: null,
     questions: MOCK_QUESTIONS
   },
-  onLoad() {
+  async onLoad() {
+    const ok = await requireLogin('/pages/review-session/index');
+    if (!ok) return;
     const app = getApp();
     const paper = app.globalData.selectedPaper;
     if (!paper) {

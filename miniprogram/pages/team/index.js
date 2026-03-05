@@ -1,4 +1,5 @@
 const { MOCK_TEAM_MEMBERS } = require('../../utils/constants');
+const { requireLogin } = require('../../utils/auth');
 
 Page({
   data: {
@@ -12,12 +13,16 @@ Page({
       dots: [1, 2, 3, 4, 5].map(p => ({ num: p, passed: m.progress.indexOf(p) >= 0 }))
     }))
   },
-  onShow() {
+  async onShow() {
+    const ok = await requireLogin('/pages/team/index', { fromTab: true });
+    if (!ok) return;
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 });
     }
   },
-  onTeamLeaderTap() {
+  async onTeamLeaderTap() {
+    const ok = await requireLogin('/pages/team-detail/index');
+    if (!ok) return;
     wx.navigateTo({
       url: '/pages/team-detail/index'
     });

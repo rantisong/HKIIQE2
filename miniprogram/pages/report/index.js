@@ -1,4 +1,5 @@
 const { getReport } = require('../../utils/api');
+const { requireLogin } = require('../../utils/auth');
 
 function formatTimeSpent(seconds) {
   if (seconds == null || seconds < 0) return '--';
@@ -22,7 +23,9 @@ Page({
     fromExamResult: false
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    const ok = await requireLogin('/pages/report/index' + (options.id ? '?id=' + options.id : ''));
+    if (!ok) return;
     const app = getApp();
     const examResult = app.globalData.examResult;
     if (examResult) {

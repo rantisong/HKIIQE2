@@ -1,5 +1,6 @@
 const { MOCK_QUESTIONS } = require('../../utils/constants');
 const { recordExamResult } = require('../../utils/examStats');
+const { requireLogin } = require('../../utils/auth');
 
 function getSubjectIdFromPaper(paper) {
   if (!paper) return '';
@@ -46,7 +47,9 @@ Page({
     question: null,
     questions: MOCK_QUESTIONS
   },
-  onLoad() {
+  async onLoad() {
+    const ok = await requireLogin('/pages/exam/index');
+    if (!ok) return;
     const app = getApp();
     const paper = app.globalData.selectedPaper;
     const examPaper = app.globalData.selectedExamPaper;

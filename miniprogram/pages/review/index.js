@@ -1,3 +1,5 @@
+const { requireLogin } = require('../../utils/auth');
+
 Page({
   data: {
     subjects: [
@@ -8,12 +10,14 @@ Page({
       { id: '05', name: '卷五', fullName: '投资相连长期保险', collected: 12 },
     ]
   },
-  onShow() {
+  async onShow() {
+    const ok = await requireLogin('/pages/review/index', { fromTab: true });
+    if (!ok) return;
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
   },
-  onSelectSubject(e) {
+  async onSelectSubject(e) {
     const idx = e.currentTarget.dataset.index;
     const sub = this.data.subjects[idx];
     if (!sub) return;
@@ -27,6 +31,8 @@ Page({
     };
     const app = getApp();
     app.globalData.selectedPaper = paper;
+    const ok = await requireLogin('/pages/review-session/index');
+    if (!ok) return;
     wx.navigateTo({
       url: '/pages/review-session/index'
     });

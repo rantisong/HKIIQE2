@@ -1,3 +1,5 @@
+const { requireLogin } = require('../../utils/auth');
+
 Page({
   data: {
     leader: {
@@ -10,6 +12,10 @@ Page({
         { label: '活跃成员', value: '892' }
       ]
     }
+  },
+  async onLoad() {
+    const ok = await requireLogin('/pages/team-detail/index');
+    if (!ok) return;
   },
   onBack() {
     wx.navigateBack();

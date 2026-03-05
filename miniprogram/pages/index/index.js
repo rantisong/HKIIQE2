@@ -1,14 +1,17 @@
 const { PAPERS } = require('../../utils/constants');
 const { getExamStats, getPassRatePercent } = require('../../utils/examStats');
 const { getPaperList } = require('../../utils/api');
+const { requireLogin } = require('../../utils/auth');
 
 Page({
   data: {
     papers: [],
     loading: true,
+    greeting: '您好，考生 👋',
   },
 
   onLoad() {
+    this.updateGreeting();
     this.loadPapers();
   },
 
@@ -16,7 +19,16 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
+    this.updateGreeting();
     this.loadPapers();
+  },
+
+  updateGreeting() {
+    const app = getApp();
+    const user = app.globalData && app.globalData.userInfo;
+    const nickname = (user && user.profile && user.profile.nickname) ? (user.profile.nickname || '').trim() : '';
+    const greeting = nickname ? `您好，${nickname} 👋` : '您好，考生 👋';
+    this.setData({ greeting });
   },
 
   async loadPapers() {
@@ -64,13 +76,16 @@ Page({
     }
   },
 
-  onSelectPaper(e) {
+  async onSelectPaper(e) {
     const idx = e.currentTarget.dataset.index;
     const paper = this.data.papers[idx];
     if (!paper) return;
-    
+
     const app = getApp();
     app.globalData.selectedPaper = paper;
+    const ok = await requireLogin('/pages/paper-selection/index');
+    if (!ok) return;
+
     wx.navigateTo({
       url: '/pages/paper-selection/index'
     });

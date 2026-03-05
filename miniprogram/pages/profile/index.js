@@ -1,8 +1,12 @@
-const { getUserInfo, getRecordList } = require('../../utils/api');
+const { getProfile, getRecordList } = require('../../utils/api');
+const { requireLogin } = require('../../utils/auth');
 
 Page({
   data: {
     userInfo: null,
+    avatarDisplay: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user',
+    nicknameDisplay: '微信用户',
+    inviteCodeDisplay: '--',
     stats: [
       { label: '累计学习', value: '0', unit: '天' },
       { label: '刷题总数', value: '0', unit: '' },
@@ -11,24 +15,49 @@ Page({
     loading: false
   },
 
-  onShow() {
+  async onShow() {
+    const ok = await requireLogin('/pages/profile/index', { fromTab: true });
+    if (!ok) return;
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 3 });
     }
+    this.loadUserData();
   },
 
   onLoad() {
     this.loadUserData();
   },
 
+  setProfileDisplay(user) {
+    if (!user) return;
+    const profile = user.profile || {};
+    const nickname = (profile.nickname || '').trim() || '微信用户';
+    const avatar = (profile.avatar || '').trim();
+    const inviteCode = (user.inviteCode || (user._id ? String(user._id).slice(-8).toUpperCase() : '') || '--');
+    this.setData({
+      nicknameDisplay: nickname,
+      avatarDisplay: avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user',
+      inviteCodeDisplay: inviteCode,
+    });
+  },
+
   async loadUserData() {
     this.setData({ loading: true });
-    
+    const app = getApp();
+    const cached = app.globalData.userInfo;
+    if (cached) {
+      this.setProfileDisplay(cached);
+    }
     try {
-      // 获取用户信息
-      const userRes = await getUserInfo();
-      if (userRes.result && userRes.result.success) {
-        this.setData({ userInfo: userRes.result.data });
+      const userRes = await getProfile();
+      if (userRes.result && userRes.result.success && userRes.result.data) {
+        const user = userRes.result.data;
+        // 仅当已登录（本地已有 userInfo）时用云端数据刷新缓存，避免未点击「确认授权并登录」就被视为已登录
+        if (app.globalData.userInfo) {
+          app.globalData.userInfo = user;
+        }
+        this.setData({ userInfo: user });
+        this.setProfileDisplay(user);
       }
 
       // 获取答题记录统计
@@ -74,7 +103,12 @@ Page({
       content: '确定要退出登录吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '已退出', icon: 'none' });
+          getApp().globalData.userInfo = null;
+          wx.showToast({ title: '已退出', icon: 'none', duration: 1500 });
+          setTimeout(() => {
+            const returnUrl = encodeURIComponent('/pages/profile/index');
+            wx.reLaunch({ url: `/pages/login/index?from=logout&returnUrl=${returnUrl}` });
+          }, 300);
         }
       }
     });

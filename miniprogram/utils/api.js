@@ -14,10 +14,19 @@ const callCloud = (functionName, data = {}) => {
 // ============ 用户模块 ============
 
 /**
- * 获取用户信息
+ * 获取/创建用户信息（登录/注册）
+ * @param {object} [profile] 可选，{ nickName, avatarUrl }，会传给云函数作为 profile
  */
-// 云函数名不能含斜杠，使用 模块_方法 格式（如 exam_getPaperList）
-const getUserInfo = () => callCloud('user_getUserInfo');
+const getUserInfo = (profile) => {
+  const data = {};
+  if (profile) data.profile = { nickname: profile.nickName, avatar: profile.avatarUrl };
+  return callCloud('user_getUserInfo', data);
+};
+
+/**
+ * 仅根据 openid 查询用户（不创建），用于登录页预填
+ */
+const getProfile = () => callCloud('user_getProfile', {});
 
 /**
  * 更新用户信息
@@ -161,18 +170,22 @@ const uploadFile = (filePath, cloudPath) => {
 
 /**
  * 上传图片
- * @param {string} filePath 图片临时路径
+ * @param {string} filePath 图片临时路径（支持无扩展名或含 query 的路径）
  * @param {string} prefix 路径前缀
  */
-const uploadImage = (filePath, prefix = 'images') => {
+const uploadImage = (filePath, prefix = 'avatars') => {
   const timestamp = Date.now();
-  const cloudPath = `${prefix}/${timestamp}.${filePath.split('.').pop()}`;
+  const basePath = (filePath || '').split('?')[0].trim();
+  const ext = basePath ? basePath.split('.').pop() : '';
+  const safeExt = /^[a-z0-9]{2,5}$/i.test(ext) ? ext : 'jpg';
+  const cloudPath = `${prefix}/${timestamp}.${safeExt}`;
   return uploadFile(filePath, cloudPath);
 };
 
 // 使用 module.exports 以支持各页面的 require() 引用
 module.exports = {
   getUserInfo,
+  getProfile,
   updateUserProfile,
   getPaperList,
   getPaperDetail,
