@@ -67,6 +67,31 @@
   padding-bottom: 200rpx;
 }
 
+.favorite-fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 260rpx;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.favorite-fab.active {
+  background: #fff7e6;
+  box-shadow: 0 12rpx 32rpx rgba(245, 158, 11, 0.35);
+}
+
+.favorite-icon {
+  font-size: 40rpx;
+  color: #f59e0b;
+}
+
 .question-text {
   font-size: 32rpx;
   font-weight: bold;

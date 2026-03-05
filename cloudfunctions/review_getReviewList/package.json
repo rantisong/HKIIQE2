@@ -1,0 +1,10 @@
+{
+  "name": "review_getReviewList",
+  "version": "1.0.0",
+  "description": "Get review summary per subject for current user",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+

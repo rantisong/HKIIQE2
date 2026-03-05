@@ -50,6 +50,14 @@
         <text>"{{question.explanationEn}}"</text>
       </view>
     </view>
+    <!-- 浮动收藏按钮（右下角，仅在提交答案后显示） -->
+    <view
+      wx:if="{{answerRevealed}}"
+      class="favorite-fab {{isFavorited ? 'active' : ''}}"
+      bindtap="onToggleFavorite"
+    >
+      <text class="favorite-icon">{{isFavorited ? '★' : '☆'}}</text>
+    </view>
   </scroll-view>
   </view>
 

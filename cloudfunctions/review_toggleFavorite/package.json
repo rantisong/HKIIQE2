@@ -1,0 +1,10 @@
+{
+  "name": "review_toggleFavorite",
+  "version": "1.0.0",
+  "description": "Toggle favorite status for review questions",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+

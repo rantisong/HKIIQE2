@@ -127,25 +127,29 @@ const getTeamDetail = (teamId) =>
 // ============ 复习模块 ============
 
 /**
- * 获取复习列表
+ * 获取复习科目汇总（各科收藏数量）
  */
 const getReviewList = () =>
   callCloud('review_getReviewList');
 
 /**
- * 添加错题到复习
- * @param {string} paperId 试卷ID
- * @param {array} incorrectQuestions 错题列表
+ * 获取指定科目的复习题目列表
+ * @param {string} subjectId 科目 ID（01～05）
  */
-const addToReview = (paperId, incorrectQuestions) =>
-  callCloud('review_addToReview', { paperId, incorrectQuestions });
+const getReviewQuestions = (subjectId) =>
+  callCloud('review_getSubjectQuestions', { subjectId });
 
 /**
- * 更新复习进度
- * @param {string} reviewId 复习ID
+ * 切换收藏状态（收藏 / 取消收藏）
+ * @param {object} payload
+ *  - subjectId: string
+ *  - sourceType: 'mock' | 'real'
+ *  - paperId?: string | null
+ *  - questionId: string
+ *  - snapshot?: { content?, text?, options?, correctAnswer?, explanation?, explanationEn?, type?, score?, paperTitle? }
  */
-const updateReviewProgress = (reviewId) =>
-  callCloud('review_updateReviewProgress', { reviewId });
+const toggleReviewFavorite = (payload) =>
+  callCloud('review_toggleFavorite', payload);
 
 // ============ 文件上传 ============
 
@@ -199,8 +203,8 @@ module.exports = {
   joinTeam,
   getTeamDetail,
   getReviewList,
-  addToReview,
-  updateReviewProgress,
+  getReviewQuestions,
+  toggleReviewFavorite,
   initDB,
   uploadFile,
   uploadImage,

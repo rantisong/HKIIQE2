@@ -1,6 +1,7 @@
 const { MOCK_QUESTIONS } = require('../../utils/constants');
 const { recordExamResult } = require('../../utils/examStats');
 const { requireLogin } = require('../../utils/auth');
+const { toggleReviewFavorite } = require('../../utils/api');
 
 function getSubjectIdFromPaper(paper) {
   if (!paper) return '';
@@ -45,7 +46,8 @@ Page({
     secondsLeft: 3600,
     initialSeconds: 3600,    // 用于计算答题用时
     question: null,
-    questions: MOCK_QUESTIONS
+    questions: MOCK_QUESTIONS,
+    isFavorited: false
   },
   async onLoad() {
     const ok = await requireLogin('/pages/exam/index');
@@ -94,7 +96,7 @@ Page({
         title: `${paper.name}：${paper.fullName}`
       });
     }
-    this.setData({ ...data, isOptionsLocked: false });
+    this.setData({ ...data, isOptionsLocked: false, isFavorited: false });
     this._examCompletedOrTimeUp = false;
     if (!isExamPaperMode) this.startTimer();
   },
@@ -216,7 +218,14 @@ Page({
     const ans = saved ? (saved.selectedAnswers || (saved.selectedAnswer ? [saved.selectedAnswer] : [])) : [];
     const revealed = saved ? saved.answerRevealed : false;
     const question = this._prepareQuestion(q, ans, revealed);
-    this.setData({ index: idx, question, selectedAnswers: ans, answerRevealed: revealed, isOptionsLocked: !!saved });
+    this.setData({
+      index: idx,
+      question,
+      selectedAnswers: ans,
+      answerRevealed: revealed,
+      isOptionsLocked: !!saved,
+      isFavorited: false
+    });
   },
   onSubmitOrNext() {
     if (!this.data.answerRevealed) {
@@ -289,5 +298,89 @@ Page({
   },
   onBack() {
     wx.navigateBack();
+  },
+  async onToggleFavorite() {
+    const { paper, examPaper, question, selectedAnswers } = this.data;
+    if (!paper || !question) return;
+
+    // 统一 subjectId：01～05
+    const subjectId = (paper.subjectId != null ? String(paper.subjectId) : String(paper.id || '')).padStart(2, '0');
+
+    const sourceType = examPaper ? 'real' : 'mock';
+    const paperId = sourceType === 'real'
+      ? (examPaper && examPaper._id) || paper._id || paper.id || null
+      : null;
+
+    const questionId = question.id || question._id || question.questionId;
+    if (!subjectId || !questionId) {
+      wx.showToast({ title: '题目信息不完整，无法收藏', icon: 'none' });
+      return;
+    }
+
+    // 当前作答（用于在复习模块中还原用户选择）
+    const selected = Array.isArray(selectedAnswers)
+      ? selectedAnswers
+      : selectedAnswers
+      ? [selectedAnswers]
+      : [];
+    const correctList =
+      question.correctAnswersList && question.correctAnswersList.length
+        ? question.correctAnswersList
+        : this._parseCorrectAnswers(question.correctAnswer);
+    const isCorrect =
+      selected.length > 0 ? this._isAnswerCorrect(selected, correctList) : undefined;
+
+    const lastAnswer =
+      selected.length === 0
+        ? undefined
+        : selected.length === 1
+        ? selected[0]
+        : selected.join(',');
+
+    const payload = {
+      subjectId,
+      sourceType,
+      paperId,
+      questionId,
+      snapshot: {
+        content: question.text || question.content || '',
+        text: question.text || question.content || '',
+        options: question.options || {},
+        correctAnswer: question.correctAnswer,
+        explanation: question.explanation || '',
+        explanationEn: question.explanationEn || '',
+        type: question.type || 'single',
+        score: typeof question.score === 'number' ? question.score : 10,
+        paperTitle: (paper && (paper.title || paper.fullName || paper.name)) || ''
+      },
+      lastAnswer,
+      correctAnswer: question.correctAnswer,
+      isCorrect
+    };
+
+    try {
+      const res = await toggleReviewFavorite(payload);
+      const { result } = res || {};
+      if (!result || !result.success || !result.data) {
+        wx.showToast({
+          title: (result && result.error) || '收藏操作失败',
+          icon: 'none'
+        });
+        return;
+      }
+      const action = result.data.action;
+      const isFavorited = action === 'favorited';
+      this.setData({ isFavorited });
+      wx.showToast({
+        title: isFavorited ? '已加入收藏' : '已取消收藏',
+        icon: 'none'
+      });
+    } catch (e) {
+      console.error('toggleReviewFavorite in exam failed', e);
+      wx.showToast({
+        title: '收藏失败，请稍后重试',
+        icon: 'none'
+      });
+    }
   }
 });

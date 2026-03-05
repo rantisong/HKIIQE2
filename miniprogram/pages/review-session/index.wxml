@@ -47,6 +47,14 @@
             <text>"{{question.explanationEn}}"</text>
           </view>
         </view>
+
+        <!-- 浮动收藏按钮（右下角） -->
+        <view
+          class="favorite-fab {{isFavorited ? 'active' : ''}}"
+          bindtap="onToggleFavorite"
+        >
+          <text class="favorite-icon">{{isFavorited ? '★' : '☆'}}</text>
+        </view>
       </view>
     </scroll-view>
   </view>
