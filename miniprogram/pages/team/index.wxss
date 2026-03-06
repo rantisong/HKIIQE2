@@ -205,3 +205,13 @@
   font-size: 40rpx;
   color: #07C160;
 }
+
+.member-list.empty {
+  padding: 48rpx;
+  text-align: center;
+}
+
+.empty-text {
+  color: #94a3b8;
+  font-size: 28rpx;
+}

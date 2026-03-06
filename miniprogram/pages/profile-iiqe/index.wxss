@@ -1,0 +1,79 @@
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 24rpx 32rpx 48rpx;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+  background: #F8FAFC;
+}
+
+.hint {
+  font-size: 26rpx;
+  color: #64748b;
+  margin-bottom: 24rpx;
+  line-height: 1.5;
+}
+
+.error-block {
+  padding: 24rpx;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.loading-tip {
+  padding: 48rpx;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.record-item {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx 32rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.record-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #000;
+}
+
+.record-row {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+
+.record-label {
+  width: 160rpx;
+  font-size: 26rpx;
+  color: #64748b;
+}
+
+.record-input {
+  flex: 1;
+  font-size: 28rpx;
+  padding: 12rpx 16rpx;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 12rpx;
+}
+
+.btn-save {
+  margin-top: 48rpx;
+  background: #07C160;
+}

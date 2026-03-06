@@ -6,6 +6,7 @@ Page({
     avatarTempPath: '',
     avatarUrl: '',
     avatarDisplay: '',
+    inviteCode: '',
     loading: false,
     error: '',
   },
@@ -112,6 +113,13 @@ Page({
     });
   },
 
+  onInviteCodeInput(e) {
+    this.setData({
+      inviteCode: (e.detail.value || '').trim(),
+      error: '',
+    });
+  },
+
   onConfirmLogin() {
     const { nickname, avatarUrl, loading } = this.data;
     if (loading) return;
@@ -123,7 +131,7 @@ Page({
     this.doLogin({
       nickName: nickname.trim(),
       avatarUrl: avatarUrl || '',
-    });
+    }, this.data.inviteCode);
   },
 
   navigateAfterLogin(returnUrl) {
@@ -140,9 +148,9 @@ Page({
     }
   },
 
-  async doLogin(profile) {
+  async doLogin(profile, inviteCode) {
     try {
-      const res = await getUserInfo(profile);
+      const res = await getUserInfo(profile, inviteCode);
       const result = res && res.result;
       if (result && result.success && result.data) {
         getApp().globalData.userInfo = result.data;

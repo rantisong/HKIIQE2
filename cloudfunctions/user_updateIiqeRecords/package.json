@@ -1,0 +1,9 @@
+{
+  "name": "user_updateIiqeRecords",
+  "version": "1.0.0",
+  "description": "Update current user user_iiqe_records",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

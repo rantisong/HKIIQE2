@@ -4,22 +4,27 @@
     <text class="subtitle">一个人可以走很快，一群人才能走更远。</text>
   </view>
 
-  <view class="stats-grid">
+  <view class="stats-grid" wx:if="{{!loading}}">
     <view wx:for="{{stats}}" wx:key="label" class="stat-item">
       <text class="stat-label">{{item.label}}</text>
       <text class="stat-value">{{item.value}}</text>
     </view>
   </view>
+  <view class="stats-grid" wx:elif="{{loading}}">
+    <view class="stat-item"><text class="stat-label">团队</text><text class="stat-value">--</text></view>
+    <view class="stat-item"><text class="stat-label">合资格</text><text class="stat-value">--</text></view>
+    <view class="stat-item"><text class="stat-label">全牌照</text><text class="stat-value">--</text></view>
+  </view>
 
-  <view class="leader-card" bindtap="onTeamLeaderTap">
+  <view class="leader-card" wx:if="{{hasLeader && leader}}" bindtap="onTeamLeaderTap">
     <view class="leader-left">
-      <image class="leader-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jason" mode="aspectFill" />
-      <text class="leader-name">Jason Lee</text>
+      <image class="leader-avatar" src="{{leader.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=leader'}}" mode="aspectFill" />
+      <text class="leader-name">{{leader.nickname}}</text>
     </view>
     <view class="leader-right">
       <view class="leader-badge">
         <text class="badge-icon">👥</text>
-        <text class="badge-text">45人</text>
+        <text class="badge-text">{{leader.teamSize}}人</text>
       </view>
       <text class="leader-arrow">›</text>
     </view>
@@ -27,23 +32,29 @@
 
   <view class="members-section">
     <text class="members-title">团队成员</text>
-    <view class="member-list">
-      <view wx:for="{{members}}" wx:key="id" class="member-item">
+    <view class="member-list" wx:if="{{members.length > 0}}">
+      <view
+        wx:for="{{members}}"
+        wx:key="inviteCode"
+        class="member-item {{item.hasSubordinates ? 'clickable' : ''}}"
+        data-item="{{item}}"
+        bindtap="onMemberTap"
+      >
         <view class="member-left">
           <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill" />
           <view class="member-info">
             <text class="member-name">{{item.name}}</text>
             <view class="progress-dots">
-              <view 
-                wx:for="{{item.dots}}" 
-                wx:for-item="d" 
+              <view
+                wx:for="{{item.dots}}"
+                wx:for-item="d"
                 wx:key="num"
                 class="dot {{d.passed ? 'passed' : ''}}"
               >{{d.num}}</view>
             </view>
           </view>
         </view>
-        <view class="member-right">
+        <view class="member-right" wx:if="{{item.hasSubordinates}}">
           <view class="member-badge">
             <text>👥</text>
             <text>{{item.teamSize}}人</text>
@@ -51,6 +62,9 @@
           <text class="member-arrow">›</text>
         </view>
       </view>
+    </view>
+    <view class="member-list empty" wx:else>
+      <text class="empty-text">暂无直属成员</text>
     </view>
   </view>
 </scroll-view>

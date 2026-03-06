@@ -1,0 +1,9 @@
+{
+  "name": "team_getMyStats",
+  "version": "1.0.0",
+  "description": "Team stats: team count, qualified, fullLicense",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

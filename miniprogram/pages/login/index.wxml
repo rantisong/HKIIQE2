@@ -34,6 +34,17 @@
           bindinput="onNicknameInput"
         />
       </view>
+      <view class="invite-code-row">
+        <text class="label">邀请码（选填）</text>
+        <input
+          class="nickname-input"
+          type="text"
+          placeholder="填写邀请人邀请码加入其团队"
+          value="{{inviteCode}}"
+          maxlength="6"
+          bindinput="onInviteCodeInput"
+        />
+      </view>
     </view>
 
     <button

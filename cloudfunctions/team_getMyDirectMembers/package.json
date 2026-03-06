@@ -1,0 +1,9 @@
+{
+  "name": "team_getMyDirectMembers",
+  "version": "1.0.0",
+  "description": "Get my direct members (invitees)",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

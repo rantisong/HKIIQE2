@@ -8,6 +8,15 @@ const db = cloud.database();
 const INVITE_CODE_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const INVITE_CODE_MAX_RETRY = 20;
 
+// 新用户默认 IIQE 考试记录（科目一～五，未通过、时间为空）
+const DEFAULT_IIQE_RECORDS = [
+  { subjectId: '01', subjectName: '保险原理及实务', examTime: null, passed: false, passedAt: null },
+  { subjectId: '02', subjectName: '一般保险', examTime: null, passed: false, passedAt: null },
+  { subjectId: '03', subjectName: '长期保险', examTime: null, passed: false, passedAt: null },
+  { subjectId: '04', subjectName: '强制性公积金计划', examTime: null, passed: false, passedAt: null },
+  { subjectId: '05', subjectName: '投资相连长期保险', examTime: null, passed: false, passedAt: null },
+];
+
 function generateInviteCode() {
   let code = '';
   for (let i = 0; i < 6; i++) {
@@ -31,7 +40,7 @@ async function getUniqueInviteCode(usersCol) {
 }
 
 // 获取用户信息（登录/注册：无则创建用户）
-// 支持 event.profile { nickname, avatar }
+// 支持 event.profile { nickname, avatar }、event.inviteCode（邀请码，可选，仅新用户生效）
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
@@ -41,6 +50,7 @@ exports.main = async (event, context) => {
         avatar: event.profile.avatar || event.profile.avatarUrl || '',
       }
     : null;
+  const inviteCodeInput = typeof event.inviteCode === 'string' ? event.inviteCode.trim().toUpperCase() : '';
 
   if (!openid) {
     return {
@@ -54,18 +64,21 @@ exports.main = async (event, context) => {
     const userRes = await usersCol.where({ _openid: openid }).get();
 
     if (userRes.data.length > 0) {
-      const user = userRes.data[0];
-      // 若本次带了授权资料，更新用户昵称/头像
+      let user = userRes.data[0];
+      if (!(user.inviteCode && user.inviteCode.trim())) {
+        const code = await getUniqueInviteCode(usersCol);
+        await usersCol.doc(user._id).update({
+          data: { inviteCode: code, updatedAt: new Date() },
+        });
+        user = { ...user, inviteCode: code, updatedAt: new Date() };
+      }
       if (profileInput && (profileInput.nickname || profileInput.avatar)) {
         const profile = {
           nickname: profileInput.nickname || (user.profile && user.profile.nickname) || '',
           avatar: profileInput.avatar || (user.profile && user.profile.avatar) || '',
         };
         await usersCol.doc(user._id).update({
-          data: {
-            updatedAt: new Date(),
-            profile,
-          },
+          data: { updatedAt: new Date(), profile },
         });
         user.profile = profile;
         user.updatedAt = new Date();
@@ -75,9 +88,21 @@ exports.main = async (event, context) => {
 
     // 创建新用户（带授权资料则写入），并生成 6 位数字+字母邀请码
     const inviteCode = await getUniqueInviteCode(usersCol);
+    let invitedBy = null;
+    if (inviteCodeInput.length >= 4) {
+      const inviterRes = await usersCol.where({ inviteCode: inviteCodeInput }).limit(1).get();
+      if (inviterRes.data && inviterRes.data.length > 0) {
+        const inviter = inviterRes.data[0];
+        if (inviter._openid !== openid) {
+          invitedBy = inviteCodeInput;
+        }
+      }
+    }
     const newUser = {
       _openid: openid,
       inviteCode,
+      invitedBy: invitedBy || undefined,
+      user_iiqe_records: JSON.parse(JSON.stringify(DEFAULT_IIQE_RECORDS)),
       createdAt: new Date(),
       updatedAt: new Date(),
       profile: profileInput

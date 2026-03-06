@@ -1,0 +1,9 @@
+{
+  "name": "team_getMyLeader",
+  "version": "1.0.0",
+  "description": "Get my team leader (inviter)",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -7,7 +7,7 @@ const db = cloud.database();
 
 // 初始化数据库集合
 const initCollections = async () => {
-  const collections = ['users', 'papers', 'records', 'teams', 'team_members', 'reviews'];
+  const collections = ['users', 'papers', 'records', 'reviews'];
   const results = [];
 
   for (const name of collections) {
@@ -282,6 +282,80 @@ const cleanDirtyData = async (event) => {
   }
 };
 
+const INVITE_CODE_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const INVITE_CODE_MAX_RETRY = 20;
+
+const DEFAULT_IIQE_RECORDS = [
+  { subjectId: '01', subjectName: '保险原理及实务', examTime: null, passed: false, passedAt: null },
+  { subjectId: '02', subjectName: '一般保险', examTime: null, passed: false, passedAt: null },
+  { subjectId: '03', subjectName: '长期保险', examTime: null, passed: false, passedAt: null },
+  { subjectId: '04', subjectName: '强制性公积金计划', examTime: null, passed: false, passedAt: null },
+  { subjectId: '05', subjectName: '投资相连长期保险', examTime: null, passed: false, passedAt: null },
+];
+
+function generateInviteCode() {
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)];
+  }
+  return code;
+}
+
+async function getUniqueInviteCode(usersCol, existingCodes) {
+  for (let retry = 0; retry < INVITE_CODE_MAX_RETRY; retry++) {
+    const code = generateInviteCode();
+    if (existingCodes.has(code)) continue;
+    const { total } = await usersCol.where({ inviteCode: code }).count();
+    if (total === 0) return code;
+    existingCodes.add(code);
+  }
+  throw new Error('邀请码生成失败');
+}
+
+const backfillInviteCode = async () => {
+  const usersCol = db.collection('users');
+  const res = await usersCol.get();
+  const users = res.data || [];
+  const existingCodes = new Set(users.map((u) => (u.inviteCode || '').trim().toUpperCase()).filter(Boolean));
+  let added = 0;
+  let normalized = 0;
+  let iiqeInited = 0;
+  const defaultIiqe = JSON.parse(JSON.stringify(DEFAULT_IIQE_RECORDS));
+  for (const u of users) {
+    const updates = {};
+    if (!(u.inviteCode && u.inviteCode.trim())) {
+      const code = await getUniqueInviteCode(usersCol, existingCodes);
+      existingCodes.add(code);
+      updates.inviteCode = code;
+      added += 1;
+    }
+    if (u.invitedBy && typeof u.invitedBy === 'string') {
+      const norm = u.invitedBy.trim().toUpperCase();
+      if (norm !== u.invitedBy) {
+        updates.invitedBy = norm;
+        normalized += 1;
+      }
+    }
+    const needIiqe = !Array.isArray(u.user_iiqe_records) || u.user_iiqe_records.length === 0;
+    if (needIiqe) {
+      updates.user_iiqe_records = defaultIiqe;
+      iiqeInited += 1;
+    }
+    if (Object.keys(updates).length > 0) {
+      updates.updatedAt = new Date();
+      await usersCol.doc(u._id).update({ data: updates });
+    }
+  }
+  return {
+    success: true,
+    message: '已回填邀请码、统一大小写并初始化 user_iiqe_records',
+    added,
+    normalized,
+    iiqeInited,
+    total: users.length,
+  };
+};
+
 exports.main = async (event, context) => {
   const { action } = event;
 
@@ -297,6 +371,8 @@ exports.main = async (event, context) => {
         return { collections, papers };
       case 'clean_dirty':
         return await cleanDirtyData(event);
+      case 'backfill_invite_code':
+        return await backfillInviteCode();
       default:
         return { message: 'No action specified' };
     }

@@ -1,0 +1,9 @@
+{
+  "name": "team_getMemberTeam",
+  "version": "1.0.0",
+  "description": "Get member team page data",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

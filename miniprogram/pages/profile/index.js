@@ -93,6 +93,14 @@ Page({
     }
   },
 
+  onIiqeRecords() {
+    wx.navigateTo({ url: '/pages/profile-iiqe/index' });
+  },
+
+  onUpdateInvite() {
+    wx.navigateTo({ url: '/pages/profile-invite/index' });
+  },
+
   onCustomerService() {
     wx.showToast({ title: '敬请期待', icon: 'none' });
   },

@@ -16,10 +16,12 @@ const callCloud = (functionName, data = {}) => {
 /**
  * 获取/创建用户信息（登录/注册）
  * @param {object} [profile] 可选，{ nickName, avatarUrl }，会传给云函数作为 profile
+ * @param {string} [inviteCode] 可选，邀请码（仅新用户注册时生效）
  */
-const getUserInfo = (profile) => {
+const getUserInfo = (profile, inviteCode) => {
   const data = {};
   if (profile) data.profile = { nickname: profile.nickName, avatar: profile.avatarUrl };
+  if (inviteCode) data.inviteCode = String(inviteCode).trim().toUpperCase();
   return callCloud('user_getUserInfo', data);
 };
 
@@ -91,18 +93,28 @@ const getReport = (recordId) =>
 
 // ============ 团队模块 ============
 
-/**
- * 获取团队列表
- */
-const getTeamList = (page = 1, pageSize = 10) =>
-  callCloud('team_getTeamList', { page, pageSize });
+/** 团队主页三个数：团队、合资格、全牌照 */
+const getTeamMyStats = () => callCloud('team_getMyStats', {});
 
-/**
- * 创建团队
- * @param {object} teamInfo 团队信息 { name, description, avatar }
- */
-const createTeam = (teamInfo) =>
-  callCloud('team_createTeam', teamInfo);
+/** 邀请我的团队长（无上级时 hasLeader: false） */
+const getTeamMyLeader = () => callCloud('team_getMyLeader', {});
+
+/** 所属团队列表：团队长 + 当前用户 + 同门 */
+const getTeamMyLeaderTeam = () => callCloud('team_getMyLeaderTeam', {});
+
+/** 直属下属列表 */
+const getTeamMyDirectMembers = () => callCloud('team_getMyDirectMembers', {});
+
+/** 某成员的团队页数据（inviteCode 或 openid） */
+const getTeamMemberTeam = (opts) => callCloud('team_getMemberTeam', opts);
+
+/** 修改被邀请码（加入新团队） */
+const updateInvitedBy = (inviteCode) =>
+  callCloud('user_updateInvitedBy', { inviteCode });
+
+/** 更新当前用户 IIQE 考试记录 */
+const updateIiqeRecords = (records) =>
+  callCloud('user_updateIiqeRecords', { records });
 
 // ============ 复习模块 ============
 
@@ -177,8 +189,13 @@ module.exports = {
   getRecordList,
   submitAnswer,
   getReport,
-  getTeamList,
-  createTeam,
+  getTeamMyStats,
+  getTeamMyLeader,
+  getTeamMyLeaderTeam,
+  getTeamMyDirectMembers,
+  getTeamMemberTeam,
+  updateInvitedBy,
+  updateIiqeRecords,
   getReviewList,
   getReviewQuestions,
   toggleReviewFavorite,

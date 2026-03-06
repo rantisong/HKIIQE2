@@ -1,0 +1,36 @@
+<scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="hint">以下为真实 IIQE 考试通过情况，用于团队合资格/全牌照统计。请按实际考试结果填写。</view>
+  <view class="error-block" wx:if="{{error}}">{{error}}</view>
+
+  <view class="record-list" wx:if="{{!loading}}">
+    <view wx:for="{{records}}" wx:key="subjectId" class="record-item">
+      <view class="record-header">
+        <text class="record-title">{{item.subjectName}}</text>
+        <switch checked="{{item.passed}}" data-index="{{index}}" bindchange="onPassedChange" color="#07C160" />
+      </view>
+      <view class="record-row">
+        <text class="record-label">考试时间</text>
+        <input
+          class="record-input"
+          placeholder="选填"
+          value="{{item.examTime}}"
+          data-index="{{index}}"
+          bindinput="onExamTimeInput"
+        />
+      </view>
+      <view class="record-row" wx:if="{{item.passed}}">
+        <text class="record-label">通过时间</text>
+        <input
+          class="record-input"
+          placeholder="选填"
+          value="{{item.passedAt}}"
+          data-index="{{index}}"
+          bindinput="onPassedAtInput"
+        />
+      </view>
+    </view>
+  </view>
+  <view class="loading-tip" wx:if="{{loading}}">加载中...</view>
+
+  <button class="btn-save" type="primary" loading="{{saving}}" disabled="{{saving || loading}}" bindtap="onSave">保存</button>
+</scroll-view>

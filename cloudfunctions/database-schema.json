@@ -4,6 +4,9 @@
     "fields": {
       "_id": "自动生成",
       "_openid": "自动生成（用户唯一标识）",
+      "inviteCode": "6位数字+字母邀请码（注册时生成，即团队邀请码）",
+      "invitedBy": "邀请人的邀请码（可选；无则未加入任何团队）",
+      "user_iiqe_records": "真实考试记录对象数组，每项至少含：subjectId、subjectName、examTime、passed、passedAt。默认值为科目一到科目五共5条，examTime为空、passed为false、passedAt为空",
       "profile": {
         "nickname": "用户昵称",
         "avatar": "头像URL"
@@ -57,29 +60,6 @@
       "score": "得分",
       "timeSpent": "用时（秒）",
       "createdAt": "提交时间"
-    }
-  },
-  "teams": {
-    "description": "团队",
-    "fields": {
-      "_id": "自动生成",
-      "name": "团队名称",
-      "description": "团队描述",
-      "avatar": "团队头像",
-      "owner": "创建者openid",
-      "memberCount": "成员数量",
-      "createdAt": "创建时间",
-      "updatedAt": "更新时间"
-    }
-  },
-  "team_members": {
-    "description": "团队成员",
-    "fields": {
-      "_id": "自动生成",
-      "_openid": "用户openid",
-      "teamId": "团队ID",
-      "role": "角色（owner/admin/member）",
-      "joinedAt": "加入时间"
     }
   },
   "reviews": {
