@@ -1,0 +1,9 @@
+{
+  "name": "exam_getAnswerStats",
+  "version": "1.0.0",
+  "description": "题目维度聚合：totalQuestions、totalCorrect，供「我的」页统计",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

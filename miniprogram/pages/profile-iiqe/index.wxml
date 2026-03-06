@@ -1,32 +1,36 @@
 <scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
-  <view class="hint">以下为真实 IIQE 考试通过情况，用于团队合资格/全牌照统计。请按实际考试结果填写。</view>
+  <view class="hint">以下为香港IIQE考试的时间规划和进度跟踪，便于自己合理规划考试时间进度以及团队长跟进和协助。</view>
   <view class="error-block" wx:if="{{error}}">{{error}}</view>
 
   <view class="record-list" wx:if="{{!loading}}">
     <view wx:for="{{records}}" wx:key="subjectId" class="record-item">
       <view class="record-header">
-        <text class="record-title">{{item.subjectName}}</text>
-        <switch checked="{{item.passed}}" data-index="{{index}}" bindchange="onPassedChange" color="#07C160" />
+        <text class="record-title">卷{{item.subjectLabel}}：{{item.subjectName}}</text>
+        <view class="record-pass-segment">
+          <view
+            class="segment-option {{item.passed ? '' : 'active'}}"
+            data-index="{{index}}"
+            data-passed="false"
+            bindtap="onPassedChange"
+          >未通过</view>
+          <view
+            class="segment-option {{item.passed ? 'active' : ''}}"
+            data-index="{{index}}"
+            data-passed="true"
+            bindtap="onPassedChange"
+          >通过</view>
+        </view>
       </view>
       <view class="record-row">
         <text class="record-label">考试时间</text>
-        <input
-          class="record-input"
-          placeholder="选填"
-          value="{{item.examTime}}"
-          data-index="{{index}}"
-          bindinput="onExamTimeInput"
-        />
-      </view>
-      <view class="record-row" wx:if="{{item.passed}}">
-        <text class="record-label">通过时间</text>
-        <input
-          class="record-input"
-          placeholder="选填"
-          value="{{item.passedAt}}"
-          data-index="{{index}}"
-          bindinput="onPassedAtInput"
-        />
+        <view class="record-pickers">
+          <picker mode="date" value="{{item.examDate}}" data-index="{{index}}" bindchange="onExamDateChange">
+            <view class="record-picker-value">{{item.examDate || '日期'}}</view>
+          </picker>
+          <picker mode="time" value="{{item.examTimePart}}" data-index="{{index}}" bindchange="onExamTimePartChange">
+            <view class="record-picker-value">{{item.examTimePart || '时间'}}</view>
+          </picker>
+        </view>
       </view>
     </view>
   </view>

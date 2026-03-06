@@ -10,7 +10,9 @@ Page({
     error: '',
     // 所属团队 mode=leaderTeam
     leader: null,
+    leaderStats: [],
     members: [],
+    leaderTeamMembers: [],
     // 某成员团队 mode=member
     rootUser: null,
     stats: [],
@@ -44,14 +46,37 @@ Page({
     try {
       const res = await getTeamMyLeaderTeam();
       if (res.result && res.result.success && res.result.data) {
-        const { leader: lead, members: list } = res.result.data;
+        const { leader: lead, members: list, leaderStats: stats } = res.result.data;
         const members = (list || []).map((m) => ({
           ...m,
           avatar: m.avatar || DEFAULT_AVATAR,
         }));
+        const nonLeader = (list || []).filter((m) => !m.isLeader);
+        const leaderTeamMembers = nonLeader.map((m) => {
+          const dots = [1, 2, 3, 4, 5].map((num) => ({
+            num,
+            passed: (m.passedSubjects || []).indexOf(String(num).padStart(2, '0')) >= 0,
+          }));
+          return {
+            _openid: m._openid,
+            inviteCode: m.inviteCode,
+            name: m.nickname || '微信用户',
+            avatar: m.avatar || DEFAULT_AVATAR,
+            dots,
+            isMe: m.isMe === true,
+          };
+        });
+        const s = stats && typeof stats === 'object' ? stats : {};
+        const leaderStats = [
+          { label: '团队', value: String(s.team ?? 0) },
+          { label: '合资格', value: String(s.qualified ?? 0) },
+          { label: '全牌照', value: String(s.fullLicense ?? 0) },
+        ];
         this.setData({
           leader: lead,
+          leaderStats,
           members,
+          leaderTeamMembers,
           loading: false,
         });
       } else {

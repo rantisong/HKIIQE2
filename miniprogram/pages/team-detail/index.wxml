@@ -3,23 +3,38 @@
 
   <!-- 所属团队：团队长 + 成员列表 -->
   <block wx:if="{{mode === 'leaderTeam' && !loading}}">
-    <view class="leader-section" wx:if="{{leader}}">
-      <view class="leader-tag">团队长</view>
-      <view class="profile-row">
-        <image class="avatar" src="{{leader.avatar}}" mode="aspectFill" />
-        <text class="name">{{leader.nickname}}</text>
+    <view class="leader-wrap" wx:if="{{leader}}">
+      <text class="members-title">团队长</text>
+      <view class="leader-section">
+        <view class="profile-row">
+          <image class="avatar" src="{{leader.avatar}}" mode="aspectFill" />
+          <text class="name">{{leader.nickname}}</text>
+        </view>
+        <view class="stats-grid">
+          <view wx:for="{{leaderStats}}" wx:key="label" class="stat-item">
+            <text class="stat-label">{{item.label}}</text>
+            <text class="stat-value">{{item.value}}</text>
+          </view>
+        </view>
       </view>
     </view>
     <view class="members-section">
-      <text class="members-title">成员列表</text>
-      <view class="member-list">
-        <view wx:for="{{members}}" wx:key="_openid" class="member-item" wx:if="{{!item.isLeader}}">
-          <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill" />
-          <view class="member-info">
-            <text class="member-name">{{item.nickname}}</text>
-            <text class="member-tag" wx:if="{{item.isMe}}">我</text>
+      <text class="members-title">团队成员</text>
+      <view class="member-list" wx:if="{{leaderTeamMembers.length > 0}}">
+        <view wx:for="{{leaderTeamMembers}}" wx:key="_openid" class="member-item">
+          <view class="member-left">
+            <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill" />
+            <view class="member-info">
+              <text class="member-name">{{item.name}}<text class="member-tag" wx:if="{{item.isMe}}"> 我</text></text>
+              <view class="progress-dots">
+                <view wx:for="{{item.dots}}" wx:for-item="d" wx:key="num" class="dot {{d.passed ? 'passed' : ''}}">{{d.num}}</view>
+              </view>
+            </view>
           </view>
         </view>
+      </view>
+      <view class="member-list empty" wx:else>
+        <text class="empty-text">暂无团队成员</text>
       </view>
     </view>
   </block>

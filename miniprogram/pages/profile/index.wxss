@@ -65,6 +65,25 @@
   opacity: 0.8;
 }
 
+.profile-settings-wrap {
+  flex-shrink: 0;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-settings-btn {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  font-size: 44rpx;
+  box-shadow: none;
+}
+
 .qr-btn {
   padding: 20rpx;
   flex-shrink: 0;
@@ -76,36 +95,36 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24rpx;
+  gap: 14rpx;
   padding: 0 32rpx;
-  margin-top: -16rpx;
+  margin-top: -8rpx;
 }
 
 .stat-item {
   background: #fff;
-  border-radius: 32rpx;
-  padding: 32rpx;
+  border-radius: 24rpx;
+  padding: 20rpx;
   text-align: center;
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
-  min-height: 120rpx;
+  min-height: 72rpx;
 }
 
 .stat-label {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: #888;
   display: block;
-  margin-bottom: 8rpx;
+  margin-bottom: 5rpx;
 }
 
 .stat-value-row {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 4rpx;
+  gap: 2rpx;
 }
 
 .stat-value {
-  font-size: 40rpx;
+  font-size: 34rpx;
   font-weight: bold;
 }
 
@@ -170,4 +189,157 @@
 .menu-arrow {
   font-size: 40rpx;
   color: #cbd5e1;
+}
+
+.exam-progress-section {
+  margin: 32rpx;
+}
+
+.exam-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 20rpx 0;
+}
+
+.exam-progress-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #000;
+}
+
+.exam-progress-hint {
+  font-size: 24rpx;
+  color: #94a3b8;
+}
+
+.exam-progress-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06);
+  position: relative;
+  overflow: hidden;
+  padding: 28rpx 32rpx;
+}
+
+.exam-progress-card:last-child {
+  margin-bottom: 0;
+}
+
+.exam-card-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8rpx;
+  background: #2563eb;
+  border-radius: 0 8rpx 8rpx 0;
+}
+
+.exam-card-bar.exam-card-bar-passed {
+  background: #07C160;
+}
+
+.exam-card-inner {
+  flex: 1;
+  min-width: 0;
+}
+
+.exam-progress-card.has-time .exam-card-inner {
+  margin-left: 16rpx;
+}
+
+.exam-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.exam-card-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #334155;
+  flex: 1;
+  min-width: 0;
+}
+
+.exam-countdown-badge {
+  flex-shrink: 0;
+  padding: 6rpx 16rpx;
+  background: #93c5fd;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exam-countdown-badge-text {
+  font-size: 22rpx;
+  color: #1e40af;
+}
+
+.exam-countdown-badge.exam-badge-passed {
+  background: #07C160;
+}
+
+.exam-countdown-badge.exam-badge-passed .exam-countdown-badge-text {
+  color: #fff;
+}
+
+.exam-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
+
+.exam-card-meta .md-icon {
+  flex-shrink: 0;
+}
+
+.exam-meta-label {
+  font-size: 26rpx;
+  color: #64748b;
+}
+
+.exam-meta-time {
+  font-size: 26rpx;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.exam-card-meta-passed .exam-meta-time {
+  color: #94a3b8;
+}
+
+.exam-card-meta-unset {
+  color: #94a3b8;
+}
+
+.exam-meta-placeholder {
+  font-size: 26rpx;
+  color: #94a3b8;
+}
+
+.exam-card-arrow {
+  font-size: 36rpx;
+  color: #cbd5e1;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.exam-passed-row {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #05964a;
+}
+
+.exam-passed-at {
+  margin-left: 12rpx;
+  color: #64748b;
 }

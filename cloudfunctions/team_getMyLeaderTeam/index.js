@@ -1,6 +1,39 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
+
+/**
+ * 获取某 inviteCode 下所有下属的 openid 列表（多层级）
+ */
+async function getSubordinateOpenids(usersCol, inviteCode) {
+  const openids = [];
+  let currentCodes = [inviteCode];
+  const IN_MAX = 20;
+  while (currentCodes.length > 0) {
+    const chunk = currentCodes.splice(0, IN_MAX);
+    const res = await usersCol.where({ invitedBy: _.in(chunk) }).get();
+    for (const u of res.data || []) {
+      openids.push(u._openid);
+      const code = (u.inviteCode || '').trim().toUpperCase();
+      if (code) currentCodes.push(code);
+    }
+  }
+  return openids;
+}
+
+/**
+ * 从 user_iiqe_records 判断：合资格=01+03 通过，全牌照=01～05 全通过
+ */
+function getQualifiedAndFullLicense(records) {
+  const arr = Array.isArray(records) ? records : [];
+  const passedSet = new Set(
+    arr.filter((r) => r && r.passed === true && r.subjectId).map((r) => String(r.subjectId).padStart(2, '0'))
+  );
+  const qualified = passedSet.has('01') && passedSet.has('03');
+  const fullLicense = ['01', '02', '03', '04', '05'].every((s) => passedSet.has(s));
+  return { qualified, fullLicense };
+}
 
 async function getTempUrlsForAvatars(cloudApi, avatars) {
   const cloudIds = [...new Set(avatars)].filter((a) => a && String(a).trim().startsWith('cloud://'));
@@ -84,7 +117,23 @@ exports.main = async () => {
     if (meInList) members.push(toItem(meInList));
     others.forEach((s) => members.push(toItem(s)));
 
-    return { success: true, data: { leader: leaderItem, members } };
+    let leaderStats = { team: 0, qualified: 0, fullLicense: 0 };
+    const openids = await getSubordinateOpenids(usersCol, leaderCode);
+    if (openids.length > 0) {
+      leaderStats.team = openids.length;
+      const BATCH = 20;
+      for (let i = 0; i < openids.length; i += BATCH) {
+        const batch = openids.slice(i, i + BATCH);
+        const res = await usersCol.where({ _openid: _.in(batch) }).field({ user_iiqe_records: true }).get();
+        for (const u of res.data || []) {
+          const { qualified, fullLicense } = getQualifiedAndFullLicense(u.user_iiqe_records);
+          if (qualified) leaderStats.qualified += 1;
+          if (fullLicense) leaderStats.fullLicense += 1;
+        }
+      }
+    }
+
+    return { success: true, data: { leader: leaderItem, members, leaderStats } };
   } catch (e) {
     return { success: false, error: e.message };
   }

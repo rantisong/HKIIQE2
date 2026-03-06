@@ -12,6 +12,8 @@
         "avatar": "头像URL"
       },
       "role": "用户角色（student/teacher/admin）",
+      "city": "常驻城市（省+市，可选）",
+      "hkIdentityAcquiredAt": "香港身份获取时间，yyyy-MM-dd（可选，空表示未获得）",
       "createdAt": "创建时间",
       "updatedAt": "更新时间"
     }
@@ -42,11 +44,12 @@
     }
   },
   "records": {
-    "description": "答题记录",
+    "description": "答题记录（模拟+真题完整提交均落库）",
     "fields": {
       "_id": "自动生成",
       "_openid": "用户openid",
-      "paperId": "试卷ID",
+      "paperType": "mock|real（可选）",
+      "paperId": "试卷ID（真题时有值）",
       "paperTitle": "试卷标题",
       "answers": ["用户答案数组"],
       "results": [

@@ -1,7 +1,7 @@
 const { MOCK_QUESTIONS } = require('../../utils/constants');
 const { recordExamResult } = require('../../utils/examStats');
 const { requireLogin } = require('../../utils/auth');
-const { toggleReviewFavorite } = require('../../utils/api');
+const { toggleReviewFavorite, submitAnswer } = require('../../utils/api');
 
 function getSubjectIdFromPaper(paper) {
   if (!paper) return '';
@@ -261,6 +261,30 @@ Page({
     }
     return correct;
   },
+  _buildAnswersAndResults() {
+    const { questionStates, questionCount, questions } = this.data;
+    const total = questionCount || 75;
+    const qList = questions || MOCK_QUESTIONS;
+    const answers = [];
+    const results = [];
+    for (let i = 0; i < total; i++) {
+      const saved = questionStates[i];
+      const selected = saved ? (saved.selectedAnswers || (saved.selectedAnswer ? [saved.selectedAnswer] : [])) : [];
+      const q = qList[i % qList.length];
+      const correctList = this._parseCorrectAnswers(q.correctAnswer);
+      const userAnswer = selected.length <= 1 ? (selected[0] || '') : [...selected].sort().join(',');
+      const correctAnswer = q.correctAnswer != null ? String(q.correctAnswer) : '';
+      const isCorrect = this._isAnswerCorrect(selected, correctList);
+      answers.push(userAnswer);
+      results.push({
+        questionId: q.id || q._id || q.questionId || String(i),
+        userAnswer,
+        correctAnswer,
+        isCorrect,
+      });
+    }
+    return { answers, results };
+  },
   onNext() {
     const index = this.data.index;
     const questionCount = this.data.questionCount || 75;
@@ -272,16 +296,35 @@ Page({
         const correctCount = this._computeCorrectCount();
         const result = recordExamResult(correctCount, questionCount);
         const timeSpent = Math.max(0, (this.data.initialSeconds || 0) - this.data.secondsLeft);
+        const accuracyPercent = Math.round((correctCount / questionCount) * 100);
         getApp().globalData.examResult = {
           questionCount,
           correctCount,
           passed: result.passed,
-          accuracyPercent: Math.round((correctCount / questionCount) * 100),
+          accuracyPercent,
           timeSpent,
           totalCount: result.totalCount,
           passCount: result.passCount,
           passRatePercent: result.passRatePercent
         };
+        const paper = this.data.paper;
+        const examPaper = this.data.examPaper;
+        const { answers, results } = this._buildAnswersAndResults();
+        const paperTitle = (paper && (paper.title || paper.fullName || paper.name)) || '';
+        const subjectId = getSubjectIdFromPaper(paper);
+        if (examPaper) {
+          const paperId = (examPaper._id || paper._id || paper.id) || null;
+          if (paperId) {
+            submitAnswer(paperId, answers, timeSpent, 'real').catch(() => {});
+          }
+        } else {
+          submitAnswer(null, answers, timeSpent, 'mock', {
+            subjectId,
+            paperTitle,
+            results,
+            score: accuracyPercent,
+          }).catch(() => {});
+        }
       } else {
         getApp().globalData.examResult = null;
       }

@@ -1,0 +1,9 @@
+{
+  "name": "user_updateProfile",
+  "version": "1.0.0",
+  "description": "Update current user profile: city, hkIdentityAcquiredAt",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

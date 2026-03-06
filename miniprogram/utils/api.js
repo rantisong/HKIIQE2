@@ -30,6 +30,10 @@ const getUserInfo = (profile, inviteCode) => {
  */
 const getProfile = () => callCloud('user_getProfile', {});
 
+/** 更新当前用户资料：常驻城市、香港身份获取时间 */
+const updateProfile = (opts) =>
+  callCloud('user_updateProfile', { city: opts.city, hkIdentityAcquiredAt: opts.hkIdentityAcquiredAt });
+
 // ============ 考试模块 ============
 
 /**
@@ -76,13 +80,30 @@ const getRecordList = (page = 1, pageSize = 10) =>
   callCloud('exam_getRecordList', { page, pageSize });
 
 /**
- * 提交答题
- * @param {string} paperId 试卷ID
+ * 提交答题（模拟+真题均落库）
+ * @param {string} [paperId] 试卷ID（真题必填）
  * @param {array} answers 用户答案数组
  * @param {number} timeSpent 用时（秒）
+ * @param {string} [paperType] 'real'|'mock'，默认 'real'
+ * @param {object} [mockPayload] 模拟时必传：{ subjectId, paperTitle, results, score }
  */
-const submitAnswer = (paperId, answers, timeSpent) =>
-  callCloud('exam_submitAnswer', { paperId, answers, timeSpent });
+const submitAnswer = (paperId, answers, timeSpent, paperType = 'real', mockPayload) => {
+  const data = { answers, timeSpent, paperType };
+  if (paperType === 'mock' && mockPayload) {
+    data.subjectId = mockPayload.subjectId;
+    data.paperTitle = mockPayload.paperTitle;
+    data.results = mockPayload.results;
+    data.score = mockPayload.score;
+  } else {
+    data.paperId = paperId;
+  }
+  return callCloud('exam_submitAnswer', data);
+};
+
+/**
+ * 题目维度统计（供「我的」页：刷题总数、平均正确率）
+ */
+const getAnswerStats = () => callCloud('exam_getAnswerStats', {});
 
 /**
  * 获取答题报告
@@ -188,7 +209,9 @@ module.exports = {
   importPaperFromJson,
   getRecordList,
   submitAnswer,
+  getAnswerStats,
   getReport,
+  updateProfile,
   getTeamMyStats,
   getTeamMyLeader,
   getTeamMyLeaderTeam,

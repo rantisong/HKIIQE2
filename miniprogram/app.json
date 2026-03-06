@@ -11,7 +11,8 @@
     "pages/review-session/index",
     "pages/team-detail/index",
     "pages/profile-iiqe/index",
-    "pages/profile-invite/index"
+    "pages/profile-invite/index",
+    "pages/profile-settings/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

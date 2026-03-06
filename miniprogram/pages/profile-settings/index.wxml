@@ -1,0 +1,62 @@
+<scroll-view scroll-y class="page" enhanced>
+  <view class="section">
+    <view class="section-title">团队邀请码</view>
+    <view class="hint">填写邀请人邀请码后，您将加入该邀请人的团队。</view>
+    <view class="error-block" wx:if="{{inviteError}}">{{inviteError}}</view>
+    <block wx:if="{{hasJoinedTeam && !inviteEditing}}">
+      <view class="form-row form-row-display">
+        <view class="invite-display-box">
+          <text class="invite-display-text">{{inviterNicknameDisplay || '--'}} ：{{currentInviteCode}}</text>
+        </view>
+        <button class="btn-sm" type="primary" bindtap="onInviteEdit">修改</button>
+      </view>
+    </block>
+    <block wx:else>
+      <view class="form-row">
+        <view class="form-input-wrap">
+          <input
+            class="input"
+            type="text"
+            placeholder="请输入邀请码"
+            placeholder-class="invite-placeholder"
+            value="{{inviteCode}}"
+            maxlength="6"
+            bindinput="onInviteInput"
+          />
+        </view>
+        <button class="btn-sm" type="primary" loading="{{inviteLoading}}" disabled="{{inviteLoading}}" bindtap="onInviteConfirm">确认</button>
+      </view>
+    </block>
+  </view>
+
+  <view class="section">
+    <view class="section-title">常驻城市</view>
+    <picker mode="region" level="city" value="{{region}}" bindchange="onCityChange">
+      <view class="picker-value {{cityDisplay ? '' : 'picker-value-placeholder'}}">{{cityDisplay || '请选择省/市'}}</view>
+    </picker>
+    <view class="save-row">
+      <button class="btn-sm" type="primary" loading="{{cityLoading}}" disabled="{{cityLoading}}" bindtap="onCitySave">保存</button>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">香港身份</view>
+    <view class="hint">请设置获取香港身份的日期。不设置即表示还没有获得香港身份。</view>
+    <picker mode="date" value="{{hkIdentityDate}}" bindchange="onHkDateChange">
+      <view class="picker-value {{hkIdentityDisplay ? '' : 'picker-value-placeholder'}}">{{hkIdentityDisplay || '设置日期'}}</view>
+    </picker>
+    <view class="save-row">
+      <button class="btn-sm" type="primary" loading="{{hkLoading}}" disabled="{{hkLoading}}" bindtap="onHkSave">保存</button>
+    </view>
+  </view>
+
+  <view class="section section-logout">
+    <view class="menu-item logout-item" bindtap="onLogout">
+      <view class="menu-left">
+        <view class="menu-icon red">🚪</view>
+        <text class="menu-text red">退出登录</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+  </view>
+</scroll-view>

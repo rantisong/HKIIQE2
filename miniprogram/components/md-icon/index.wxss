@@ -22,3 +22,8 @@
 .md-icon.success {
   filter: invert(42%) sepia(93%) saturate(500%) hue-rotate(87deg) brightness(95%) contrast(90%);
 }
+
+/* Blue - #2563eb, for exam time etc */
+.md-icon.blue {
+  filter: invert(32%) sepia(98%) saturate(2000%) hue-rotate(210deg) brightness(95%) contrast(92%);
+}

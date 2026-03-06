@@ -9,6 +9,8 @@ const SUBJECT_NAMES = {
   '05': '投资相连长期保险',
 };
 
+const SUBJECT_LABELS = { '01': '一', '02': '二', '03': '三', '04': '四', '05': '五' };
+
 Page({
   data: {
     records: [],
@@ -39,13 +41,22 @@ Page({
             passedAt: '',
           }));
         }
-        const records = list.map((r) => ({
-          subjectId: String(r.subjectId || '').padStart(2, '0'),
-          subjectName: r.subjectName || SUBJECT_NAMES[String(r.subjectId).padStart(2, '0')],
-          examTime: r.examTime || '',
-          passed: !!r.passed,
-          passedAt: r.passedAt || '',
-        }));
+        const records = list.map((r) => {
+          const sid = String(r.subjectId || '').padStart(2, '0');
+          const examTime = r.examTime || '';
+          const examDate = examTime ? examTime.slice(0, 10) : '';
+          const examTimePart = examTime && examTime.length >= 16 ? examTime.slice(11, 16) : '';
+          return {
+            subjectId: sid,
+            subjectLabel: SUBJECT_LABELS[sid] || sid,
+            subjectName: r.subjectName || SUBJECT_NAMES[sid],
+            examTime,
+            examDate,
+            examTimePart,
+            passed: !!r.passed,
+            passedAt: r.passedAt || '',
+          };
+        });
         this.setData({ records, loading: false });
       } else {
         this.setData({ loading: false, error: '加载失败' });
@@ -57,25 +68,39 @@ Page({
 
   onPassedChange(e) {
     const idx = e.currentTarget.dataset.index;
-    const checked = e.detail.value && e.detail.value.length > 0;
+    const passed = e.currentTarget.dataset.passed === 'true';
     const records = this.data.records.slice();
-    if (records[idx]) records[idx].passed = checked;
+    if (!records[idx]) return;
+    records[idx].passed = passed;
+    if (passed) {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      records[idx].passedAt = `${y}-${m}-${d}`;
+    } else {
+      records[idx].passedAt = '';
+    }
     this.setData({ records });
   },
 
-  onExamTimeInput(e) {
+  onExamDateChange(e) {
     const idx = e.currentTarget.dataset.index;
     const val = (e.detail && e.detail.value) || '';
     const records = this.data.records.slice();
-    if (records[idx]) records[idx].examTime = val;
+    if (!records[idx]) return;
+    records[idx].examDate = val;
+    records[idx].examTime = val + (records[idx].examTimePart ? ' ' + records[idx].examTimePart : '');
     this.setData({ records });
   },
 
-  onPassedAtInput(e) {
+  onExamTimePartChange(e) {
     const idx = e.currentTarget.dataset.index;
     const val = (e.detail && e.detail.value) || '';
     const records = this.data.records.slice();
-    if (records[idx]) records[idx].passedAt = val;
+    if (!records[idx]) return;
+    records[idx].examTimePart = val;
+    records[idx].examTime = (records[idx].examDate || '') + (val ? ' ' + val : '');
     this.setData({ records });
   },
 
@@ -94,6 +119,7 @@ Page({
       const res = await updateIiqeRecords(payload);
       if (res.result && res.result.success) {
         wx.showToast({ title: '已保存', icon: 'success' });
+        setTimeout(() => wx.navigateBack(), 500);
       } else {
         this.setData({ error: (res.result && res.result.error) || '保存失败' });
       }
