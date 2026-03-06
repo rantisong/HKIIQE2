@@ -74,22 +74,41 @@ exports.main = async (event) => {
     if (!target) return { success: false, error: '用户不存在' };
 
     const targetCode = (target.inviteCode || '').trim().toUpperCase();
-    const subOpenids = await getSubordinateOpenids(usersCol, targetCode);
-
-    let qualifiedCount = 0;
-    let fullLicenseCount = 0;
-    const BATCH = 20;
-    for (let i = 0; i < subOpenids.length; i += BATCH) {
-      const batch = subOpenids.slice(i, i + BATCH);
-      const res = await usersCol.where({ _openid: _.in(batch) }).field({ user_iiqe_records: true }).get();
-      for (const u of res.data || []) {
-        const { qualified, fullLicense } = getQualifiedAndFullLicense(u.user_iiqe_records);
-        if (qualified) qualifiedCount += 1;
-        if (fullLicense) fullLicenseCount += 1;
+    const statsCol = db.collection('team_stats');
+    let stats = { team: 0, qualified: 0, fullLicense: 0 };
+    let statsFromCache = false;
+    try {
+      const cached = await statsCol.doc(targetCode).get();
+      if (cached.data && typeof cached.data.team === 'number') {
+        stats = {
+          team: cached.data.team,
+          qualified: cached.data.qualified ?? 0,
+          fullLicense: cached.data.fullLicense ?? 0,
+        };
+        statsFromCache = true;
+      }
+    } catch (_) {}
+    if (!statsFromCache) {
+      const subOpenids = await getSubordinateOpenids(usersCol, targetCode);
+      let qualifiedCount = 0;
+      let fullLicenseCount = 0;
+      const BATCH = 20;
+      for (let i = 0; i < subOpenids.length; i += BATCH) {
+        const batch = subOpenids.slice(i, i + BATCH);
+        const res = await usersCol.where({ _openid: _.in(batch) }).field({ user_iiqe_records: true }).get();
+        for (const u of res.data || []) {
+          const { qualified, fullLicense } = getQualifiedAndFullLicense(u.user_iiqe_records);
+          if (qualified) qualifiedCount += 1;
+          if (fullLicense) fullLicenseCount += 1;
+        }
+      }
+      stats = { team: subOpenids.length, qualified: qualifiedCount, fullLicense: fullLicenseCount };
+      try {
+        await statsCol.doc(targetCode).set({ data: { ...stats, updatedAt: new Date() } });
+      } catch (e) {
+        console.warn('team_stats set skip (collection may not exist):', e.message);
       }
     }
-
-    const stats = { team: subOpenids.length, qualified: qualifiedCount, fullLicense: fullLicenseCount };
 
     let leader = null;
     const targetInvitedBy = (target.invitedBy || '').trim().toUpperCase();

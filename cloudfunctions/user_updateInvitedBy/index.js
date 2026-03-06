@@ -25,9 +25,20 @@ exports.main = async (event) => {
     const me = meRes.data && meRes.data[0];
     if (!me) return { success: false, error: '用户不存在' };
 
+    const oldInvitedBy = (me.invitedBy && String(me.invitedBy).trim().toUpperCase()) || '';
+
     await usersCol.doc(me._id).update({
       data: { invitedBy: inviteCode, updatedAt: new Date() },
     });
+
+    try {
+      await cloud.callFunction({ name: 'team_refreshStats', data: { inviteCode } });
+      if (oldInvitedBy && oldInvitedBy !== inviteCode) {
+        await cloud.callFunction({ name: 'team_refreshStats', data: { inviteCode: oldInvitedBy } });
+      }
+    } catch (e) {
+      console.error('team_refreshStats after updateInvitedBy', e);
+    }
 
     return { success: true, data: { invitedBy: inviteCode } };
   } catch (e) {

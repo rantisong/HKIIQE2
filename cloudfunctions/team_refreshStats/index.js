@@ -36,39 +36,19 @@ function getQualifiedAndFullLicense(records) {
 }
 
 /**
- * 团队主页三个数：团队（下属总人数）、合资格、全牌照
- * 优先读 team_stats 冗余，未命中则计算并回写
+ * 刷新指定团队长的 team_stats 冗余数据
+ * 入参：inviteCode（团队长的邀请码）
+ * 可被其他云函数调用，或在读路径未命中时调用
  */
-exports.main = async () => {
-  const wxContext = cloud.getWXContext();
-  const openid = wxContext.OPENID;
-  if (!openid) return { success: false, error: '未登录' };
+exports.main = async (event) => {
+  const inviteCode = typeof event.inviteCode === 'string' ? event.inviteCode.trim().toUpperCase() : '';
+  if (!inviteCode) return { success: false, error: '缺少 inviteCode' };
 
   try {
     const usersCol = db.collection('users');
     const statsCol = db.collection('team_stats');
-    const meRes = await usersCol.where({ _openid: openid }).limit(1).get();
-    const me = meRes.data && meRes.data[0];
-    if (!me) return { success: true, data: { team: 0, qualified: 0, fullLicense: 0 } };
-    const myCode = (me.inviteCode || '').trim().toUpperCase();
-    if (!myCode) return { success: true, data: { team: 0, qualified: 0, fullLicense: 0 } };
 
-    let cached = null;
-    try {
-      cached = await statsCol.doc(myCode).get();
-    } catch (_) {}
-    if (cached && cached.data && typeof cached.data.team === 'number') {
-      return {
-        success: true,
-        data: {
-          team: cached.data.team,
-          qualified: cached.data.qualified ?? 0,
-          fullLicense: cached.data.fullLicense ?? 0,
-        },
-      };
-    }
-
-    const openids = await getSubordinateOpenids(usersCol, myCode);
+    const openids = await getSubordinateOpenids(usersCol, inviteCode);
     let qualifiedCount = 0;
     let fullLicenseCount = 0;
     const BATCH = 20;
@@ -81,14 +61,25 @@ exports.main = async () => {
         if (fullLicense) fullLicenseCount += 1;
       }
     }
-    const data = { team: openids.length, qualified: qualifiedCount, fullLicense: fullLicenseCount };
+
+    const now = new Date();
     try {
-      await statsCol.doc(myCode).set({ data: { ...data, updatedAt: new Date() } });
+      await statsCol.doc(inviteCode).set({
+        data: {
+          team: openids.length,
+          qualified: qualifiedCount,
+          fullLicense: fullLicenseCount,
+          updatedAt: now,
+        },
+      });
     } catch (e) {
       console.warn('team_stats set skip (collection may not exist):', e.message);
     }
 
-    return { success: true, data };
+    return {
+      success: true,
+      data: { team: openids.length, qualified: qualifiedCount, fullLicense: fullLicenseCount },
+    };
   } catch (e) {
     return { success: false, error: e.message };
   }

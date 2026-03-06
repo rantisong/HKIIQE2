@@ -117,19 +117,41 @@ exports.main = async () => {
     if (meInList) members.push(toItem(meInList));
     others.forEach((s) => members.push(toItem(s)));
 
+    const statsCol = db.collection('team_stats');
     let leaderStats = { team: 0, qualified: 0, fullLicense: 0 };
-    const openids = await getSubordinateOpenids(usersCol, leaderCode);
-    if (openids.length > 0) {
-      leaderStats.team = openids.length;
-      const BATCH = 20;
-      for (let i = 0; i < openids.length; i += BATCH) {
-        const batch = openids.slice(i, i + BATCH);
-        const res = await usersCol.where({ _openid: _.in(batch) }).field({ user_iiqe_records: true }).get();
-        for (const u of res.data || []) {
-          const { qualified, fullLicense } = getQualifiedAndFullLicense(u.user_iiqe_records);
-          if (qualified) leaderStats.qualified += 1;
-          if (fullLicense) leaderStats.fullLicense += 1;
+    let fromCache = false;
+    try {
+      const cached = await statsCol.doc(leaderCode).get();
+      if (cached.data && typeof cached.data.team === 'number') {
+        leaderStats = {
+          team: cached.data.team,
+          qualified: cached.data.qualified ?? 0,
+          fullLicense: cached.data.fullLicense ?? 0,
+        };
+        fromCache = true;
+      }
+    } catch (_) {}
+    if (!fromCache) {
+      const openids = await getSubordinateOpenids(usersCol, leaderCode);
+      if (openids.length > 0) {
+        leaderStats.team = openids.length;
+        const BATCH = 20;
+        for (let i = 0; i < openids.length; i += BATCH) {
+          const batch = openids.slice(i, i + BATCH);
+          const res = await usersCol.where({ _openid: _.in(batch) }).field({ user_iiqe_records: true }).get();
+          for (const u of res.data || []) {
+            const { qualified, fullLicense } = getQualifiedAndFullLicense(u.user_iiqe_records);
+            if (qualified) leaderStats.qualified += 1;
+            if (fullLicense) leaderStats.fullLicense += 1;
+          }
         }
+      }
+      try {
+        await statsCol.doc(leaderCode).set({
+          data: { ...leaderStats, updatedAt: new Date() },
+        });
+      } catch (e) {
+        console.warn('team_stats set skip (collection may not exist):', e.message);
       }
     }
 

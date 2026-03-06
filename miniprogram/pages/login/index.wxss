@@ -88,21 +88,41 @@
 }
 
 .avatar-row,
-.nickname-row {
+.nickname-row,
+.invite-code-row {
   margin-bottom: 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .avatar-row .label,
-.nickname-row .label {
+.nickname-row .label,
+.invite-code-row .label {
   font-size: 28rpx;
   color: #333;
   display: block;
   margin-bottom: 16rpx;
 }
 
+.avatar-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar-btn-box {
+  width: 160rpx;
+  height: 160rpx;
+}
+
 .avatar-btn {
   padding: 0;
   margin: 0;
+  width: 100%;
+  height: 100%;
   background: transparent;
   border: none;
   display: block;
@@ -137,11 +157,13 @@
 }
 
 .nickname-input {
+  width: 100%;
   height: 88rpx;
   padding: 0 24rpx;
   font-size: 30rpx;
   background: #f8f8f8;
   border-radius: 16rpx;
+  box-sizing: border-box;
 }
 
 .hint {
@@ -151,14 +173,24 @@
   margin-top: 16rpx;
 }
 
-.btn-login {
+.btn-login-wrap {
   width: 100%;
+  margin: 0;
+}
+
+.btn-login {
+  display: block;
+  width: 100%;
+  margin: 0 !important;
   height: 96rpx;
   line-height: 96rpx;
   font-size: 32rpx;
   border-radius: 48rpx;
   background: linear-gradient(135deg, #07C160, #05964a);
   border: none;
+  padding: 0;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .btn-login::after {

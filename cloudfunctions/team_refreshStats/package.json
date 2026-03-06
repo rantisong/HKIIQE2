@@ -1,0 +1,9 @@
+{
+  "name": "team_refreshStats",
+  "version": "1.0.0",
+  "description": "Refresh team_stats for a leader by inviteCode",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

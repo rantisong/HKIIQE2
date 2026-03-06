@@ -16,13 +16,16 @@
     <!-- 头像昵称填写（微信官方授权能力） -->
     <view class="auth-section">
       <view class="avatar-row">
-        <text class="label">头像</text>
-        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-          <image class="avatar-img" wx:if="{{avatarDisplay}}" src="{{avatarDisplay}}" mode="aspectFill" />
-          <view class="avatar-placeholder" wx:elif="{{!avatarDisplay}}">
-            <text class="avatar-tip">点击选择头像</text>
+        <view class="avatar-wrap">
+          <view class="avatar-btn-box">
+            <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+              <image class="avatar-img" wx:if="{{avatarDisplay}}" src="{{avatarDisplay}}" mode="aspectFill" />
+              <view class="avatar-placeholder" wx:elif="{{!avatarDisplay}}">
+                <text class="avatar-tip">点击选择头像</text>
+              </view>
+            </button>
           </view>
-        </button>
+        </view>
       </view>
       <view class="nickname-row">
         <text class="label">昵称</text>
@@ -34,7 +37,7 @@
           bindinput="onNicknameInput"
         />
       </view>
-      <view class="invite-code-row">
+      <view class="invite-code-row" wx:if="{{isNewUser === true}}">
         <text class="label">邀请码（选填）</text>
         <input
           class="nickname-input"
@@ -47,15 +50,18 @@
       </view>
     </view>
 
-    <button
-      class="btn-login"
-      type="primary"
-      loading="{{loading}}"
-      disabled="{{loading || !nickname}}"
-      bindtap="onConfirmLogin"
-    >
-      确认授权并登录
-    </button>
+    <view class="btn-login-wrap">
+      <button
+        class="btn-login"
+        style="margin: 0; width: 100%;"
+        type="primary"
+        loading="{{loading}}"
+        disabled="{{loading || !nickname}}"
+        bindtap="onConfirmLogin"
+      >
+        微信一键授权登录
+      </button>
+    </view>
     <view class="hint" wx:if="{{!nickname}}">请至少填写昵称</view>
   </view>
 </view>

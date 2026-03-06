@@ -110,6 +110,13 @@ exports.main = async (event, context) => {
         : { nickname: '', avatar: '' },
     };
     const addRes = await usersCol.add({ data: newUser });
+    if (invitedBy) {
+      try {
+        await cloud.callFunction({ name: 'team_refreshStats', data: { inviteCode: String(invitedBy).trim().toUpperCase() } });
+      } catch (e) {
+        console.error('team_refreshStats after create user', e);
+      }
+    }
     return {
       success: true,
       data: { _id: addRes._id, ...newUser },

@@ -69,6 +69,15 @@ exports.main = async (event) => {
       data: { user_iiqe_records: nextRecords, updatedAt: new Date() },
     });
 
+    const leaderCode = (me.invitedBy && String(me.invitedBy).trim().toUpperCase()) || '';
+    if (leaderCode) {
+      try {
+        await cloud.callFunction({ name: 'team_refreshStats', data: { inviteCode: leaderCode } });
+      } catch (e) {
+        console.error('team_refreshStats after updateIiqeRecords', e);
+      }
+    }
+
     return { success: true, data: { user_iiqe_records: nextRecords } };
   } catch (e) {
     return { success: false, error: e.message };

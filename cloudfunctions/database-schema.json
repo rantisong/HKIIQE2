@@ -65,6 +65,16 @@
       "createdAt": "提交时间"
     }
   },
+  "team_stats": {
+    "description": "团队长维度统计冗余（团队人数、合资格、全牌照），_id 为团队长 inviteCode",
+    "fields": {
+      "_id": "团队长 inviteCode（6位）",
+      "team": "下属总人数",
+      "qualified": "合资格人数（01+03通过）",
+      "fullLicense": "全牌照人数（01～05全通过）",
+      "updatedAt": "更新时间"
+    }
+  },
   "reviews": {
     "description": "复习记录",
     "fields": {

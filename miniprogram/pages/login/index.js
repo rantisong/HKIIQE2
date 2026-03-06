@@ -9,6 +9,7 @@ Page({
     inviteCode: '',
     loading: false,
     error: '',
+    isNewUser: null,
   },
 
   onLoad(options) {
@@ -46,19 +47,28 @@ Page({
   prefillFromExistingUser() {
     getProfile()
       .then((res) => {
-        if (!res.result || !res.result.success || !res.result.data) return;
+        if (!res.result || !res.result.success) {
+          this.setData({ isNewUser: true });
+          return;
+        }
         const user = res.result.data;
+        if (!user) {
+          this.setData({ isNewUser: true });
+          return;
+        }
         const profile = user.profile || {};
         const nickname = (profile.nickname || '').trim();
         const avatar = (profile.avatar || '').trim();
-        if (!nickname && !avatar) return;
         this.setData({
+          isNewUser: false,
           nickname: nickname || this.data.nickname,
           avatarUrl: avatar || this.data.avatarUrl,
           avatarDisplay: avatar || this.data.avatarDisplay,
         });
       })
-      .catch(() => {});
+      .catch(() => {
+        this.setData({ isNewUser: true });
+      });
   },
 
   // 用户点击选择头像（微信官方授权能力）；模拟器下可能报 ENOENT，头像改为可选
