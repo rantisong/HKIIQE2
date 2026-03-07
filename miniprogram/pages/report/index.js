@@ -20,8 +20,6 @@ Page({
   },
 
   async onLoad(options) {
-    const ok = await requireLogin('/pages/report/index' + (options.id ? '?id=' + options.id : ''));
-    if (!ok) return;
     const app = getApp();
     const examResult = app.globalData.examResult;
     if (examResult) {
@@ -36,7 +34,11 @@ Page({
       return;
     }
     if (options.id) {
+      const ok = await requireLogin('/pages/report/index?id=' + options.id);
+      if (!ok) return;
       this.loadReport(options.id);
+    } else {
+      wx.switchTab({ url: '/pages/index/index' });
     }
   },
 

@@ -1,4 +1,13 @@
-<view class="page" wx:if="{{paper && question}}">
+<view wx:if="{{isGuest}}" class="page review-guest">
+  <guest-hint />
+  <view class="guest-empty">
+    <text class="guest-empty-title">暂无收藏题目</text>
+    <text class="guest-empty-desc">登录后可收藏题目进行复习</text>
+    <button class="guest-empty-btn" bindtap="onGoLogin">注册/登录</button>
+  </view>
+</view>
+<view class="page" wx:elif="{{paper && question}}">
+  <guest-hint />
   <view class="header">
     <text class="mode-tag">复习模式</text>
     <view class="progress-text">

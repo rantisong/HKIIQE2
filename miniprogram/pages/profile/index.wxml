@@ -1,4 +1,30 @@
 <scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <guest-hint />
+  <view wx:if="{{isGuest}}" class="profile-guest">
+    <view class="guest-card">
+      <text class="guest-title">欢迎使用HKIIQE</text>
+      <text class="guest-desc">注册/登录后可记录练习成绩、收藏题目复习、查看团队数据，获得完整学习体验</text>
+      <view class="guest-invite-row">
+        <input
+          class="guest-invite-input"
+          type="text"
+          placeholder="请输入邀请码"
+          value="{{guestInviteCode}}"
+          maxlength="6"
+          bindinput="onGuestInviteInput"
+        />
+      </view>
+      <button class="guest-login-btn" disabled="{{guestInviteCode.length !== 6}}" bindtap="onGoLogin">注册/登录</button>
+    </view>
+  </view>
+  <view wx:elif="{{showLoginForm}}" class="profile-login-form">
+    <view class="profile-login-card">
+      <text class="profile-login-title">欢迎使用 HKIIQE</text>
+      <text class="profile-login-desc">请先完成微信头像与昵称授权，再进行登录或注册</text>
+      <button class="profile-login-btn" bindtap="onGoToLoginPage">微信一键授权登录</button>
+    </view>
+  </view>
+  <block wx:else>
   <view class="profile-card">
     <view class="profile-left">
       <image class="avatar" src="{{avatarDisplay}}" mode="aspectFill" />
@@ -64,4 +90,5 @@
       <text class="exam-card-arrow">›</text>
     </view>
   </view>
+  </block>
 </scroll-view>

@@ -1,8 +1,9 @@
-const { requireLogin } = require('../../utils/auth');
+const { isGuest, DEFAULT_LOGIN_PAGE } = require('../../utils/auth');
 const { getReviewQuestions, toggleReviewFavorite } = require('../../utils/api');
 
 Page({
   data: {
+    isGuest: false,
     paper: null,
     index: 0,
     questionCount: 0,
@@ -12,9 +13,10 @@ Page({
     isFavorited: true
   },
   async onLoad() {
-    const ok = await requireLogin('/pages/review-session/index');
-    if (!ok) return;
     const app = getApp();
+    const guest = isGuest();
+    this.setData({ isGuest: guest });
+    if (guest) return;
     const paper = app.globalData.selectedPaper;
     if (!paper) {
       wx.navigateBack();
@@ -64,6 +66,12 @@ Page({
         icon: 'none'
       });
     }
+  },
+
+  onGoLogin() {
+    wx.navigateTo({
+      url: `${DEFAULT_LOGIN_PAGE}?returnUrl=${encodeURIComponent('/pages/review-session/index')}`,
+    });
   },
   onPrev() {
     const index = this.data.index;

@@ -1,5 +1,5 @@
 const { getPaperDetail, getPaperList, getMockRandomQuestions } = require('../../utils/api');
-const { requireLogin } = require('../../utils/auth');
+const { isGuest } = require('../../utils/auth');
 
 // 随机抽题缓存有效期（毫秒），超时视为异常退出/未完成，下次进入清除并重新抽题
 const RANDOM_PRACTICE_CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000;
@@ -53,13 +53,12 @@ Page({
     mockPaper: null,
     examList: [],
     examListLoading: false,
-    loading: false
+    loading: false,
+    isGuest: false
   },
 
   async onLoad(options) {
-    const returnUrl = '/pages/paper-selection/index' + (options.id ? '?id=' + options.id : '');
-    const ok = await requireLogin(returnUrl);
-    if (!ok) return;
+    this.setData({ isGuest: isGuest() });
     if (options.id) {
       this.loadPaperDetail(options.id);
     } else {
@@ -75,8 +74,13 @@ Page({
       return;
     }
     this.setData({ paper, loading: true });
+    const guest = isGuest();
     try {
-      await Promise.all([this.loadMockPaper(paper), this.loadRealPapers(paper)]);
+      if (guest) {
+        await this.loadMockPaper(paper);
+      } else {
+        await Promise.all([this.loadMockPaper(paper), this.loadRealPapers(paper)]);
+      }
     } finally {
       this.setData({ loading: false });
     }
@@ -143,21 +147,24 @@ Page({
   },
 
   async loadPaperDetail(paperId) {
-    this.setData({ loading: true });
+    this.setData({ loading: true, isGuest: isGuest() });
+    const guest = isGuest();
     try {
-      const resReal = await getPaperDetail(paperId, 'real');
-      if (resReal.result && resReal.result.success && resReal.result.data) {
-        const data = resReal.result.data;
-        this.setData({ paper: data, mockPaper: null });
-        await this.loadRealPapers(data);
-        this.setData({ loading: false });
-        return;
+      if (!guest) {
+        const resReal = await getPaperDetail(paperId, 'real');
+        if (resReal.result && resReal.result.success && resReal.result.data) {
+          const data = resReal.result.data;
+          this.setData({ paper: data, mockPaper: null });
+          await this.loadRealPapers(data);
+          this.setData({ loading: false });
+          return;
+        }
       }
       const resMock = await getPaperDetail(paperId, 'mock');
       if (resMock.result && resMock.result.success && resMock.result.data) {
         const data = resMock.result.data;
         this.setData({ paper: data, mockPaper: data });
-        await this.loadRealPapers(data);
+        if (!guest) await this.loadRealPapers(data);
       } else {
         wx.showToast({ title: '加载失败', icon: 'none' });
       }

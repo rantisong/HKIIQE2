@@ -1,6 +1,6 @@
 const { MOCK_QUESTIONS } = require('../../utils/constants');
 const { recordExamResult } = require('../../utils/examStats');
-const { requireLogin } = require('../../utils/auth');
+const { isGuest } = require('../../utils/auth');
 const { toggleReviewFavorite, submitAnswer } = require('../../utils/api');
 
 function getSubjectIdFromPaper(paper) {
@@ -50,8 +50,6 @@ Page({
     isFavorited: false
   },
   async onLoad() {
-    const ok = await requireLogin('/pages/exam/index');
-    if (!ok) return;
     const app = getApp();
     const paper = app.globalData.selectedPaper;
     const examPaper = app.globalData.selectedExamPaper;
@@ -307,23 +305,25 @@ Page({
           passCount: result.passCount,
           passRatePercent: result.passRatePercent
         };
-        const paper = this.data.paper;
-        const examPaper = this.data.examPaper;
-        const { answers, results } = this._buildAnswersAndResults();
-        const paperTitle = (paper && (paper.title || paper.fullName || paper.name)) || '';
-        const subjectId = getSubjectIdFromPaper(paper);
-        if (examPaper) {
-          const paperId = (examPaper._id || paper._id || paper.id) || null;
-          if (paperId) {
-            submitAnswer(paperId, answers, timeSpent, 'real').catch(() => {});
+        if (!isGuest()) {
+          const paper = this.data.paper;
+          const examPaper = this.data.examPaper;
+          const { answers, results } = this._buildAnswersAndResults();
+          const paperTitle = (paper && (paper.title || paper.fullName || paper.name)) || '';
+          const subjectId = getSubjectIdFromPaper(paper);
+          if (examPaper) {
+            const paperId = (examPaper._id || paper._id || paper.id) || null;
+            if (paperId) {
+              submitAnswer(paperId, answers, timeSpent, 'real').catch(() => {});
+            }
+          } else {
+            submitAnswer(null, answers, timeSpent, 'mock', {
+              subjectId,
+              paperTitle,
+              results,
+              score: accuracyPercent,
+            }).catch(() => {});
           }
-        } else {
-          submitAnswer(null, answers, timeSpent, 'mock', {
-            subjectId,
-            paperTitle,
-            results,
-            score: accuracyPercent,
-          }).catch(() => {});
         }
       } else {
         getApp().globalData.examResult = null;

@@ -39,8 +39,14 @@ async function getUniqueInviteCode(usersCol) {
   throw new Error('邀请码生成失败：多次与现有用户重复，请稍后重试');
 }
 
+// 邀请码格式：6 位数字+字母（大写）
+const INVITE_CODE_REG = /^[0-9A-Z]{6}$/;
+
+// 系统内置邀请码：输入此码的用户不属于任何团队，注册为团队根节点
+const SYSTEM_INVITE_CODE = '52IIQE';
+
 // 获取用户信息（登录/注册：无则创建用户）
-// 支持 event.profile { nickname, avatar }、event.inviteCode（邀请码，可选，仅新用户生效）
+// 新用户必须传有效 event.inviteCode（6 位数字+字母，后台转大写后校验）
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
@@ -86,22 +92,44 @@ exports.main = async (event, context) => {
       return { success: true, data: user };
     }
 
+    // 新用户：必须提供有效邀请码
+    if (!INVITE_CODE_REG.test(inviteCodeInput)) {
+      return {
+        success: false,
+        error: '邀请码为6位数字和字母组合，请重新输入',
+      };
+    }
+
+    const isSystemCode = inviteCodeInput === SYSTEM_INVITE_CODE;
+    let invitedBy;
+
+    if (isSystemCode) {
+      // 系统邀请码：不归属任何团队，注册为团队根节点
+      invitedBy = SYSTEM_INVITE_CODE;
+    } else {
+      const inviterRes = await usersCol.where({ inviteCode: inviteCodeInput }).limit(1).get();
+      if (!inviterRes.data || inviterRes.data.length === 0) {
+        return {
+          success: false,
+          error: '邀请码不正确，请重新输入',
+        };
+      }
+      const inviter = inviterRes.data[0];
+      if (inviter._openid === openid) {
+        return {
+          success: false,
+          error: '不能使用自己的邀请码',
+        };
+      }
+      invitedBy = inviteCodeInput;
+    }
+
     // 创建新用户（带授权资料则写入），并生成 6 位数字+字母邀请码
     const inviteCode = await getUniqueInviteCode(usersCol);
-    let invitedBy = null;
-    if (inviteCodeInput.length >= 4) {
-      const inviterRes = await usersCol.where({ inviteCode: inviteCodeInput }).limit(1).get();
-      if (inviterRes.data && inviterRes.data.length > 0) {
-        const inviter = inviterRes.data[0];
-        if (inviter._openid !== openid) {
-          invitedBy = inviteCodeInput;
-        }
-      }
-    }
     const newUser = {
       _openid: openid,
       inviteCode,
-      invitedBy: invitedBy || undefined,
+      invitedBy,
       user_iiqe_records: JSON.parse(JSON.stringify(DEFAULT_IIQE_RECORDS)),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -110,9 +138,9 @@ exports.main = async (event, context) => {
         : { nickname: '', avatar: '' },
     };
     const addRes = await usersCol.add({ data: newUser });
-    if (invitedBy) {
+    if (!isSystemCode) {
       try {
-        await cloud.callFunction({ name: 'team_refreshStats', data: { inviteCode: String(invitedBy).trim().toUpperCase() } });
+        await cloud.callFunction({ name: 'team_refreshStats', data: { inviteCode: invitedBy } });
       } catch (e) {
         console.error('team_refreshStats after create user', e);
       }

@@ -1,4 +1,5 @@
 <scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <guest-hint />
   <view class="score-card">
     <view class="score-ring">
       <view class="score-value">{{fromExamResult ? scoreValue : (record && record.score != null ? record.score : '--')}}</view>

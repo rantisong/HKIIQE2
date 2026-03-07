@@ -1,4 +1,5 @@
 <scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <guest-hint />
   <view class="header">
     <text class="title">我的题库 📚</text>
     <text class="subtitle">温故而知新，助您顺利通过考试。</text>

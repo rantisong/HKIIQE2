@@ -1,4 +1,5 @@
 <scroll-view wx:if="{{paper}}" scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <guest-hint />
   <view class="paper-header">
     <view class="paper-info">
       <text class="paper-label">当前科目</text>
@@ -33,7 +34,12 @@
 
   <view class="exam-list">
     <text class="list-title">考试真题</text>
-    <block wx:if="{{examList.length > 0}}">
+    <block wx:if="{{isGuest}}">
+      <view class="exam-empty">
+        <text class="exam-empty-text">登录后可练习真题</text>
+      </view>
+    </block>
+    <block wx:elif="{{examList.length > 0}}">
       <view wx:for="{{examList}}" wx:key="_id" class="exam-item tap-row" data-exam-index="{{index}}" bindtap="onStartExam" hover-class="tap-active">
         <view class="exam-info">
           <text class="exam-title">{{item.title}}</text>

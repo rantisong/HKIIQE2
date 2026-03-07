@@ -24,8 +24,10 @@ Page({
         returnUrl = rawReturn.startsWith('/') ? rawReturn : '/' + rawReturn;
       }
     }
+    const inviteCode = (options.inviteCode || '').trim().toUpperCase().slice(0, 6);
     this.setData({
       returnUrl,
+      inviteCode,
       statusBarHeight: sys.statusBarHeight || 0,
     });
     if (getApp().globalData.userInfo) {
@@ -36,12 +38,8 @@ Page({
   },
 
   onNavBack() {
-    const pages = getCurrentPages();
-    if (pages.length > 1) {
-      wx.navigateBack();
-    } else {
-      wx.switchTab({ url: '/pages/index/index' });
-    }
+    getApp().globalData.openidInSystem = false;
+    wx.switchTab({ url: '/pages/index/index' });
   },
 
   prefillFromExistingUser() {
@@ -124,24 +122,32 @@ Page({
   },
 
   onInviteCodeInput(e) {
+    const raw = (e.detail.value || '').trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
     this.setData({
-      inviteCode: (e.detail.value || '').trim(),
+      inviteCode: raw.slice(0, 6),
       error: '',
     });
   },
 
   onConfirmLogin() {
-    const { nickname, avatarUrl, loading } = this.data;
+    const { nickname, avatarUrl, inviteCode, loading, isNewUser } = this.data;
     if (loading) return;
     if (!nickname || !nickname.trim()) {
       this.setData({ error: '请先填写昵称' });
       return;
     }
+    if (isNewUser) {
+      const code = (inviteCode || '').trim().toUpperCase();
+      if (code.length !== 6 || !/^[0-9A-Z]{6}$/.test(code)) {
+        this.setData({ error: '邀请码为6位数字和字母组合，请重新输入' });
+        return;
+      }
+    }
     this.setData({ loading: true, error: '' });
     this.doLogin({
       nickName: nickname.trim(),
       avatarUrl: avatarUrl || '',
-    }, this.data.inviteCode);
+    }, (inviteCode || '').trim().toUpperCase());
   },
 
   navigateAfterLogin(returnUrl) {

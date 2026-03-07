@@ -1,0 +1,4 @@
+<view wx:if="{{show}}" class="guest-hint-wrap">
+  <view class="guest-hint-spacer"></view>
+  <view class="guest-hint-bar" bindtap="onTap">游客体验模式，注册/登录以后体验更多功能</view>
+</view>

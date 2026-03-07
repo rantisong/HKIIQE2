@@ -1,4 +1,5 @@
 <view class="page" wx:if="{{paper && question}}">
+  <guest-hint />
   <view class="header">
     <view class="timer" wx:if="{{!isExamPaperMode}}">
       <text class="timer-icon">⏱</text>

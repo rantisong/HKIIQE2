@@ -36,7 +36,8 @@
     ]
   },
   "usingComponents": {
-    "md-icon": "components/md-icon/index"
+    "md-icon": "components/md-icon/index",
+    "guest-hint": "components/guest-hint/index"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",

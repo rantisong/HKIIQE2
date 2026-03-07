@@ -1,4 +1,5 @@
 <scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <guest-hint />
   <view class="header">
     <text class="title">我的团队 🤝</text>
     <text class="subtitle">一个人可以走很快，一群人才能走更远。</text>

@@ -21,10 +21,13 @@ async function getRealPaperStats(openid, paperList) {
 
   const recRes = await db.collection('records')
     .where({ _openid: openid, paperType: 'real' })
-    .orderBy('createdAt', 'desc')
     .limit(500)
     .get();
-  const recs = recRes.data || [];
+  const recs = (recRes.data || []).sort((a, b) => {
+    const ta = (a.createdAt && (a.createdAt.getTime ? a.createdAt.getTime() : a.createdAt)) || 0;
+    const tb = (b.createdAt && (b.createdAt.getTime ? b.createdAt.getTime() : b.createdAt)) || 0;
+    return tb - ta;
+  });
 
   const map = {};
   paperIds.forEach((id) => {
@@ -68,30 +71,47 @@ exports.main = async (event, context) => {
 
     if (paperType === 'real') {
       const col = db.collection('real_papers');
-      const subjectIdStr = subjectId != null ? String(subjectId).trim() : '';
-      const filterBySubject = subjectIdStr && /^0[1-5]$/.test(subjectIdStr);
+      // 统一为两位科目码 01～05，便于与库中 "1"/"01" 等格式都能匹配
+      const norm = (v) => {
+        const s = String(v || '').trim();
+        return /^\d{1,2}$/.test(s) ? s.padStart(2, '0') : s;
+      };
+      const subjectIdNorm = subjectId != null ? norm(subjectId) : '';
+      const filterBySubject = subjectIdNorm && /^0[1-5]$/.test(subjectIdNorm);
 
       let list;
       let total;
 
       if (filterBySubject) {
-        const allRes = await col.orderBy('createdAt', 'desc').limit(200).get();
-        const all = allRes.data || [];
-        const filtered = all.filter((d) => String(d.subjectId || '').trim() === subjectIdStr);
+        // 仅 limit 拉取，内存按 subjectId 筛选+排序，不依赖任何索引
+        const allRes = await col.limit(100).get();
+        const all = (allRes.data || []).filter((d) => norm(d.subjectId) === subjectIdNorm);
+        const sorted = all.sort((a, b) => {
+          const ta = (a.createdAt && (a.createdAt.getTime ? a.createdAt.getTime() : a.createdAt)) || 0;
+          const tb = (b.createdAt && (b.createdAt.getTime ? b.createdAt.getTime() : b.createdAt)) || 0;
+          return tb - ta;
+        });
         const start = (page - 1) * pageSize;
-        list = filtered.slice(start, start + pageSize);
-        total = filtered.length;
+        list = sorted.slice(start, start + pageSize);
+        total = sorted.length;
       } else {
-        const res = await col.orderBy('createdAt', 'desc')
-          .skip((page - 1) * pageSize)
-          .limit(pageSize)
-          .get();
-        list = res.data || [];
-        const countRes = await col.count();
-        total = countRes.total;
+        const allRes = await col.limit(100).get();
+        const all = (allRes.data || []).sort((a, b) => {
+          const ta = (a.createdAt && (a.createdAt.getTime ? a.createdAt.getTime() : a.createdAt)) || 0;
+          const tb = (b.createdAt && (b.createdAt.getTime ? b.createdAt.getTime() : b.createdAt)) || 0;
+          return tb - ta;
+        });
+        const start = (page - 1) * pageSize;
+        list = all.slice(start, start + pageSize);
+        total = all.length;
       }
 
-      const stats = await getRealPaperStats(openid, list);
+      let stats = {};
+      try {
+        stats = await getRealPaperStats(openid, list);
+      } catch (e) {
+        console.warn('getRealPaperStats failed (e.g. records collection not exists):', e && e.message);
+      }
       const listWithStats = list.map((p) => {
         const s = stats[p._id] || { practiceCount: 0, accuracyRate: null };
         return {

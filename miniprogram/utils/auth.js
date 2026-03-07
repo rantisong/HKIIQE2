@@ -15,6 +15,15 @@ function ensureLogin() {
 }
 
 /**
+ * 是否为游客：仅当 openid 在系统中不存在时为 true（需在「我的」等处通过 getProfile 设置 globalData.openidInSystem）
+ * @returns {boolean}
+ */
+function isGuest() {
+  const app = getApp();
+  return (app.globalData && app.globalData.openidInSystem) !== true;
+}
+
+/**
  * 需要登录时跳转到登录页
  * @param {string} [returnUrl] 登录成功后要跳转的页面路径（含 query 时需已 encodeURIComponent）
  * @param {{ fromTab?: boolean }} [opts] fromTab 为 true 时使用 redirectTo，用户点返回会回到上一页并终止登录，不会再次弹出授权
@@ -39,5 +48,6 @@ function requireLogin(returnUrl, opts) {
 module.exports = {
   ensureLogin,
   requireLogin,
+  isGuest,
   DEFAULT_LOGIN_PAGE,
 };

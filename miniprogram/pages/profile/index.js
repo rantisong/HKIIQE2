@@ -1,5 +1,5 @@
 const { getProfile, getAnswerStats } = require('../../utils/api');
-const { requireLogin } = require('../../utils/auth');
+const { isGuest, DEFAULT_LOGIN_PAGE } = require('../../utils/auth');
 
 const SUBJECT_NAMES = {
   '01': '保险原理及实务',
@@ -68,6 +68,9 @@ function memberDays(createdAt) {
 
 Page({
   data: {
+    isGuest: false,
+    showLoginForm: false,
+    guestInviteCode: '',
     userInfo: null,
     avatarDisplay: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user',
     nicknameDisplay: '微信用户',
@@ -82,16 +85,59 @@ Page({
   },
 
   async onShow() {
-    const ok = await requireLogin('/pages/profile/index', { fromTab: true });
-    if (!ok) return;
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 3 });
     }
-    this.loadUserData();
+    const app = getApp();
+    if (app.globalData.userInfo) {
+      app.globalData.openidInSystem = true;
+      this.setData({ isGuest: false, showLoginForm: false });
+      this.loadUserData();
+      return;
+    }
+    try {
+      const userRes = await getProfile();
+      const user = userRes.result && userRes.result.success && userRes.result.data;
+      const hasUser = !!user;
+      app.globalData.openidInSystem = hasUser;
+      if (hasUser) {
+        this.setData({ isGuest: false, showLoginForm: false });
+        wx.navigateTo({
+          url: `${DEFAULT_LOGIN_PAGE}?returnUrl=${encodeURIComponent('/pages/profile/index')}`,
+        });
+        return;
+      }
+      this.setData({ isGuest: true, showLoginForm: false });
+    } catch (e) {
+      app.globalData.openidInSystem = false;
+      this.setData({ isGuest: true, showLoginForm: false });
+    }
   },
 
   onLoad() {
-    this.loadUserData();
+    this.setData({ isGuest: true, showLoginForm: false });
+  },
+
+  onGoToLoginPage() {
+    wx.navigateTo({
+      url: `${DEFAULT_LOGIN_PAGE}?returnUrl=${encodeURIComponent('/pages/profile/index')}`,
+    });
+  },
+
+  onGuestInviteInput(e) {
+    const raw = (e.detail.value || '').trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
+    this.setData({
+      guestInviteCode: raw.slice(0, 6),
+    });
+  },
+
+  onGoLogin() {
+    const { guestInviteCode } = this.data;
+    let url = `${DEFAULT_LOGIN_PAGE}?returnUrl=${encodeURIComponent('/pages/profile/index')}`;
+    if (guestInviteCode) {
+      url += `&inviteCode=${encodeURIComponent(guestInviteCode)}`;
+    }
+    wx.navigateTo({ url });
   },
 
   setProfileDisplay(user) {

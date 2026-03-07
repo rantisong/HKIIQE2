@@ -1,3 +1,46 @@
+.review-guest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.guest-empty {
+  padding: 80rpx 48rpx;
+  text-align: center;
+}
+
+.guest-empty-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #334155;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.guest-empty-desc {
+  font-size: 28rpx;
+  color: #64748b;
+  display: block;
+  margin-bottom: 48rpx;
+}
+
+.guest-empty-btn {
+  width: 360rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #07C160;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: bold;
+  border-radius: 44rpx;
+  border: none;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .page {
   min-height: 100vh;
   height: 100vh;

@@ -1,5 +1,5 @@
 const { getProfile, getTeamMyStats, getTeamMyLeader, getTeamMyDirectMembers } = require('../../utils/api');
-const { requireLogin } = require('../../utils/auth');
+const { isGuest } = require('../../utils/auth');
 
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/avataaars/svg?seed=user';
 
@@ -18,10 +18,22 @@ Page({
   },
 
   async onShow() {
-    const ok = await requireLogin('/pages/team/index', { fromTab: true });
-    if (!ok) return;
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 });
+    }
+    if (isGuest()) {
+      this.setData({
+        stats: [
+          { label: '团队', value: '0' },
+          { label: '合资格', value: '0' },
+          { label: '全牌照', value: '0' },
+        ],
+        hasLeader: false,
+        leader: null,
+        members: [],
+        loading: false,
+      });
+      return;
     }
     this.loadTeamData();
   },
@@ -82,8 +94,7 @@ Page({
   },
 
   async onTeamLeaderTap() {
-    const ok = await requireLogin('/pages/team-detail/index');
-    if (!ok) return;
+    if (isGuest()) return;
     wx.navigateTo({
       url: '/pages/team-detail/index?type=leaderTeam',
     });
@@ -91,9 +102,7 @@ Page({
 
   async onMemberTap(e) {
     const item = e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.item;
-    if (!item || !item.hasSubordinates) return;
-    const ok = await requireLogin('/pages/team-detail/index');
-    if (!ok) return;
+    if (!item || !item.hasSubordinates || isGuest()) return;
     wx.navigateTo({
       url: '/pages/team-detail/index?type=member&inviteCode=' + encodeURIComponent(item.inviteCode || ''),
     });

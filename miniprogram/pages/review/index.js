@@ -1,4 +1,4 @@
-const { requireLogin } = require('../../utils/auth');
+const { isGuest } = require('../../utils/auth');
 const { getReviewList } = require('../../utils/api');
 
 Page({
@@ -12,12 +12,13 @@ Page({
     ]
   },
   async onShow() {
-    const ok = await requireLogin('/pages/review/index', { fromTab: true });
-    if (!ok) return;
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
-
+    if (isGuest()) {
+      this.setData({ subjects: this.data.subjects.map((s) => ({ ...s, collected: 0 })) });
+      return;
+    }
     // 从云端拉取当前用户各科目的收藏数量
     try {
       const res = await getReviewList();
@@ -43,7 +44,7 @@ Page({
       console.error('getReviewList failed', e);
     }
   },
-  async onSelectSubject(e) {
+  onSelectSubject(e) {
     const idx = e.currentTarget.dataset.index;
     const sub = this.data.subjects[idx];
     if (!sub) return;
@@ -57,8 +58,6 @@ Page({
     };
     const app = getApp();
     app.globalData.selectedPaper = paper;
-    const ok = await requireLogin('/pages/review-session/index');
-    if (!ok) return;
     wx.navigateTo({
       url: '/pages/review-session/index'
     });

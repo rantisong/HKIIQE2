@@ -1,6 +1,5 @@
 const { PAPERS } = require('../../utils/constants');
 const { getPaperList, getSubjectStats } = require('../../utils/api');
-const { requireLogin } = require('../../utils/auth');
 
 Page({
   data: {
@@ -85,16 +84,13 @@ Page({
     this.setData({ loading: false });
   },
 
-  async onSelectPaper(e) {
+  onSelectPaper(e) {
     const idx = e.currentTarget.dataset.index;
     const paper = this.data.papers[idx];
     if (!paper) return;
 
     const app = getApp();
     app.globalData.selectedPaper = paper;
-    const ok = await requireLogin('/pages/paper-selection/index');
-    if (!ok) return;
-
     wx.navigateTo({
       url: '/pages/paper-selection/index'
     });

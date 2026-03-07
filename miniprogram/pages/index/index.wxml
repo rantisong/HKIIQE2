@@ -1,4 +1,5 @@
 <scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <guest-hint />
   <view class="header">
     <text class="title">{{greeting}}</text>
     <text class="subtitle">准备好今天的香港保险资格考试练习了吗？</text>

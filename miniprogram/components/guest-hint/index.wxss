@@ -1,0 +1,25 @@
+.guest-hint-wrap {
+  position: relative;
+}
+
+.guest-hint-spacer {
+  min-height: 88rpx;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
+.guest-hint-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 20rpx 32rpx;
+  padding-top: calc(20rpx + constant(safe-area-inset-top));
+  padding-top: calc(20rpx + env(safe-area-inset-top));
+  background: linear-gradient(135deg, #07C160 0%, #05a850 100%);
+  color: #fff;
+  font-size: 24rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 12rpx rgba(7, 193, 96, 0.3);
+}

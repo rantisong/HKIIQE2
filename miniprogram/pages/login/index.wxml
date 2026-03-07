@@ -2,9 +2,9 @@
   <view class="nav-bar">
     <view class="nav-bar-inner" style="padding-top: {{statusBarHeight}}px;">
       <view class="nav-back" bindtap="onNavBack">
-        <text class="nav-back-text">‹ 返回</text>
+        <text class="nav-back-text">‹</text>
       </view>
-      <text class="nav-title">登录 / 注册</text>
+      <text class="nav-title">注册登录</text>
       <view class="nav-placeholder" />
     </view>
   </view>
@@ -38,11 +38,11 @@
         />
       </view>
       <view class="invite-code-row" wx:if="{{isNewUser === true}}">
-        <text class="label">邀请码（选填）</text>
+        <text class="label">邀请码（必填）</text>
         <input
           class="nickname-input"
           type="text"
-          placeholder="填写邀请人邀请码加入其团队"
+          placeholder="请输入6位数字和字母组合"
           value="{{inviteCode}}"
           maxlength="6"
           bindinput="onInviteCodeInput"
@@ -56,12 +56,13 @@
         style="margin: 0; width: 100%;"
         type="primary"
         loading="{{loading}}"
-        disabled="{{loading || !nickname}}"
+        disabled="{{loading || !nickname || (isNewUser === true && inviteCode.length !== 6)}}"
         bindtap="onConfirmLogin"
       >
         微信一键授权登录
       </button>
     </view>
     <view class="hint" wx:if="{{!nickname}}">请至少填写昵称</view>
+    <view class="hint" wx:elif="{{isNewUser === true && inviteCode.length !== 6}}">新用户请填写6位邀请码</view>
   </view>
 </view>
