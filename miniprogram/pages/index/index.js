@@ -1,6 +1,5 @@
 const { PAPERS } = require('../../utils/constants');
-const { getExamStats, getPassRatePercent } = require('../../utils/examStats');
-const { getPaperList } = require('../../utils/api');
+const { getPaperList, getSubjectStats } = require('../../utils/api');
 const { requireLogin } = require('../../utils/auth');
 
 Page({
@@ -33,47 +32,57 @@ Page({
 
   async loadPapers() {
     this.setData({ loading: true });
-    const { passCount } = getExamStats();
-    const passRatePercent = getPassRatePercent();
-    const defaultPapers = PAPERS.map((p, index) => ({
-      ...p,
-      displayId: String(index + 1).padStart(2, '0'),
-      completedCount: passCount,
-      passRate: passRatePercent
-    }));
+    const defaultSubjects = { '01': 0, '02': 0, '03': 0, '04': 0, '05': 0 };
+    let subjectStats = defaultSubjects;
+    let listRes = null;
 
     try {
-      const res = await getPaperList(1, 20, '', 'mock');
-      if (res.result && res.result.success && res.result.data.list && res.result.data.list.length > 0) {
-        const cloudList = res.result.data.list;
-        const papers = PAPERS.map((p, index) => {
-          const subjectId = String(p.id).padStart(2, '0');
-          const cloudPaper = cloudList.find(c => String(c.subjectId || c.id || '').padStart(2, '0') === subjectId);
-          const base = cloudPaper ? {
-            id: cloudPaper._id,
-            name: cloudPaper.name || p.name,
-            fullName: cloudPaper.fullName || p.fullName,
-            questionCount: cloudPaper.questionCount || p.questionCount,
-            durationMinutes: cloudPaper.durationMinutes || p.durationMinutes,
-            paperType: 'mock',
-            subjectId: cloudPaper.subjectId || subjectId
-          } : { ...p };
-          return {
-            ...base,
-            displayId: String(index + 1).padStart(2, '0'),
-            completedCount: passCount,
-            passRate: passRatePercent
-          };
-        });
-        this.setData({ papers });
-      } else {
-        this.setData({ papers: defaultPapers });
+      const [list, stats] = await Promise.all([
+        getPaperList(1, 20, '', 'mock'),
+        getSubjectStats(),
+      ]);
+      listRes = list;
+      if (stats.result && stats.result.success && stats.result.data && stats.result.data.subjects) {
+        subjectStats = { ...defaultSubjects, ...stats.result.data.subjects };
       }
     } catch (e) {
-      this.setData({ papers: defaultPapers });
-    } finally {
-      this.setData({ loading: false });
+      console.warn('loadPapers', e);
     }
+
+    const defaultPapers = PAPERS.map((p, index) => {
+      const subjectId = String(p.id).padStart(2, '0');
+      return {
+        ...p,
+        displayId: String(index + 1).padStart(2, '0'),
+        completedCount: subjectStats[subjectId] ?? 0
+      };
+    });
+
+    if (listRes && listRes.result && listRes.result.success && listRes.result.data.list && listRes.result.data.list.length > 0) {
+      const cloudList = listRes.result.data.list;
+      const papers = PAPERS.map((p, index) => {
+        const subjectId = String(p.id).padStart(2, '0');
+        const cloudPaper = cloudList.find(c => String(c.subjectId || c.id || '').padStart(2, '0') === subjectId);
+        const base = cloudPaper ? {
+          id: cloudPaper._id,
+          name: cloudPaper.name || p.name,
+          fullName: cloudPaper.fullName || p.fullName,
+          questionCount: cloudPaper.questionCount || p.questionCount,
+          durationMinutes: cloudPaper.durationMinutes || p.durationMinutes,
+          paperType: 'mock',
+          subjectId: cloudPaper.subjectId || subjectId
+        } : { ...p };
+        return {
+          ...base,
+          displayId: String(index + 1).padStart(2, '0'),
+          completedCount: subjectStats[subjectId] ?? 0
+        };
+      });
+      this.setData({ papers });
+    } else {
+      this.setData({ papers: defaultPapers });
+    }
+    this.setData({ loading: false });
   },
 
   async onSelectPaper(e) {

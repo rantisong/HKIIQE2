@@ -106,6 +106,12 @@ const submitAnswer = (paperId, answers, timeSpent, paperType = 'real', mockPaylo
 const getAnswerStats = () => callCloud('exam_getAnswerStats', {});
 
 /**
+ * 按科目统计累计通过次数（模拟+真题，正确率≥70%）
+ * @returns {{ subjects: Record<string, number> }} 01～05 的 passCount
+ */
+const getSubjectStats = () => callCloud('exam_getSubjectStats', {});
+
+/**
  * 获取答题报告
  * @param {string} recordId 记录ID
  */
@@ -210,6 +216,7 @@ module.exports = {
   getRecordList,
   submitAnswer,
   getAnswerStats,
+  getSubjectStats,
   getReport,
   updateProfile,
   getTeamMyStats,

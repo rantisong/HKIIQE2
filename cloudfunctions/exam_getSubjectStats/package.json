@@ -1,0 +1,9 @@
+{
+  "name": "exam_getSubjectStats",
+  "version": "1.0.0",
+  "description": "按科目统计累计通过次数（模拟+真题，正确率≥70%）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

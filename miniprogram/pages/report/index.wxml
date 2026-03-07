@@ -16,20 +16,9 @@
       <text class="stat-label">答题用时</text>
       <text class="stat-value">{{fromExamResult ? timeSpentText : (record && record.timeSpent != null ? record.timeSpentText : '--')}}</text>
     </view>
-    <view class="stat-item" wx:if="{{fromExamResult && totalCount > 0}}">
-      <text class="stat-label">累计通过</text>
-      <text class="stat-value brand">{{passCount}}次 / {{passRatePercent}}%</text>
-    </view>
   </view>
 
-  <view class="answer-overview">
-    <view class="overview-header">
-      <text class="overview-title">答题概况</text>
-      <text class="overview-hint">绿色为对, 红色为错</text>
-    </view>
-    <view class="answer-grid" wx:if="{{answerDots.length > 0}}">
-      <view wx:for="{{answerDots}}" wx:key="num" class="answer-dot {{item.wrong ? 'wrong' : 'correct'}}">{{item.num}}</view>
-    </view>
+  <view class="back-btn-wrap">
     <button class="back-btn" bindtap="onBack">返回练习首页</button>
   </view>
 </scroll-view>

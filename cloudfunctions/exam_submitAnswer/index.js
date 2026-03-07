@@ -86,6 +86,7 @@ exports.main = async (event, context) => {
       paperType: 'real',
       paperId,
       paperTitle: paper.title,
+      subjectId: paper.subjectId || null,
       answers,
       results: computedResults,
       score: computedScore,

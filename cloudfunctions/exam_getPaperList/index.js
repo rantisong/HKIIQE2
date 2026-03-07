@@ -6,9 +6,48 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 
+/**
+ * 按用户 records 统计每份真题的：练习次数、最近一次准确率（正确题数/真题总题数 * 100）
+ * @param {string} openid
+ * @param {Array<{_id: string}>} paperList 真题列表
+ * @returns {Object} paperId -> { practiceCount, accuracyRate }
+ */
+async function getRealPaperStats(openid, paperList) {
+  if (!openid || !Array.isArray(paperList) || paperList.length === 0) {
+    return {};
+  }
+  const paperIds = paperList.map((p) => p._id).filter(Boolean);
+  if (paperIds.length === 0) return {};
+
+  const recRes = await db.collection('records')
+    .where({ _openid: openid, paperType: 'real' })
+    .orderBy('createdAt', 'desc')
+    .limit(500)
+    .get();
+  const recs = recRes.data || [];
+
+  const map = {};
+  paperIds.forEach((id) => {
+    map[id] = { practiceCount: 0, accuracyRate: null };
+  });
+  for (const rec of recs) {
+    const pid = rec.paperId;
+    if (!map[pid]) continue;
+    map[pid].practiceCount += 1;
+    if (map[pid].accuracyRate == null && Array.isArray(rec.results) && rec.results.length > 0) {
+      const total = rec.results.length;
+      const correct = rec.results.filter((r) => r && r.isCorrect === true).length;
+      map[pid].accuracyRate = Math.round((correct / total) * 100);
+    }
+  }
+  return map;
+}
+
 // 获取试卷列表：模拟题从 mock_bank，真题从 real_papers（分集合存储）
 exports.main = async (event, context) => {
   const { page = 1, pageSize = 10, paperType, subjectId } = event;
+  const wxContext = cloud.getWXContext();
+  const openid = wxContext.OPENID;
 
   try {
     if (paperType === 'mock') {
@@ -32,27 +71,39 @@ exports.main = async (event, context) => {
       const subjectIdStr = subjectId != null ? String(subjectId).trim() : '';
       const filterBySubject = subjectIdStr && /^0[1-5]$/.test(subjectIdStr);
 
+      let list;
+      let total;
+
       if (filterBySubject) {
-        // 严格按科目筛选：先取列表再在内存中过滤，确保试卷一真题只出现在 subjectId=01 的请求中
         const allRes = await col.orderBy('createdAt', 'desc').limit(200).get();
         const all = allRes.data || [];
         const filtered = all.filter((d) => String(d.subjectId || '').trim() === subjectIdStr);
         const start = (page - 1) * pageSize;
-        const list = filtered.slice(start, start + pageSize);
-        return {
-          success: true,
-          data: { list, total: filtered.length, page, pageSize }
-        };
+        list = filtered.slice(start, start + pageSize);
+        total = filtered.length;
+      } else {
+        const res = await col.orderBy('createdAt', 'desc')
+          .skip((page - 1) * pageSize)
+          .limit(pageSize)
+          .get();
+        list = res.data || [];
+        const countRes = await col.count();
+        total = countRes.total;
       }
 
-      const res = await col.orderBy('createdAt', 'desc')
-        .skip((page - 1) * pageSize)
-        .limit(pageSize)
-        .get();
-      const countRes = await col.count();
+      const stats = await getRealPaperStats(openid, list);
+      const listWithStats = list.map((p) => {
+        const s = stats[p._id] || { practiceCount: 0, accuracyRate: null };
+        return {
+          ...p,
+          practiceCount: s.practiceCount,
+          accuracyRate: s.accuracyRate,
+        };
+      });
+
       return {
         success: true,
-        data: { list: res.data, total: countRes.total, page, pageSize }
+        data: { list: listWithStats, total, page, pageSize }
       };
     }
 

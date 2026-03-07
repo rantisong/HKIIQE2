@@ -22,7 +22,6 @@
             </view>
             <view class="paper-meta">
               <text>累计通过 <text class="brand">{{item.completedCount}}次</text></text>
-              <text> 通过率 <text class="brand">{{item.passRate}}%</text></text>
             </view>
           </view>
         </view>
