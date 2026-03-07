@@ -15,6 +15,8 @@ Page({
     members: [],
     loading: true,
     error: '',
+    inviteCodeDisplay: '',
+    isGuest: true,
   },
 
   async onShow() {
@@ -23,6 +25,7 @@ Page({
     }
     if (isGuest()) {
       this.setData({
+        isGuest: true,
         stats: [
           { label: '团队', value: '0' },
           { label: '合资格', value: '0' },
@@ -35,13 +38,18 @@ Page({
       });
       return;
     }
+    this.setData({ isGuest: false });
     this.loadTeamData();
   },
 
   async loadTeamData() {
     this.setData({ loading: true, error: '' });
     try {
-      await getProfile();
+      const profileRes = await getProfile();
+      const user = profileRes.result && profileRes.result.success && profileRes.result.data ? profileRes.result.data : null;
+      const inviteCode = user && (user.inviteCode || (user._id ? String(user._id).slice(-8).toUpperCase() : '')) ? (user.inviteCode || String(user._id).slice(-8).toUpperCase()) : '';
+      if (inviteCode) this.setData({ inviteCodeDisplay: inviteCode });
+
       const [statsRes, leaderRes, membersRes] = await Promise.all([
         getTeamMyStats(),
         getTeamMyLeader(),
@@ -106,5 +114,16 @@ Page({
     wx.navigateTo({
       url: '/pages/team-detail/index?type=member&inviteCode=' + encodeURIComponent(item.inviteCode || ''),
     });
+  },
+
+  onShareAppMessage() {
+    const code = (this.data.inviteCodeDisplay || '').trim();
+    const path = code
+      ? `pages/login/index?inviteCode=${encodeURIComponent(code)}`
+      : 'pages/login/index';
+    return {
+      title: 'HKIIQE 邀请你一起备考',
+      path,
+    };
   },
 });
