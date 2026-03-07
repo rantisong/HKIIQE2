@@ -1,7 +1,7 @@
 /**
  * 云函数调用封装
  * @param {string} functionName 云函数名称
- * @param {object} data 传递给云函数的参数
+ * @param {Object} [data={}] 传递给云函数的参数
  * @returns {Promise}
  */
 const callCloud = (functionName, data = {}) => {

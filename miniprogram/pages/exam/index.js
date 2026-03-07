@@ -71,7 +71,9 @@ Page({
         } else if (cache && (cache.cachedAt != null || cache.questions != null)) {
           wx.removeStorageSync(cacheKey);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[Exam] cache operation error:', e);
+      }
     }
     questions = questions && questions.length > 0 ? questions : MOCK_QUESTIONS;
     const questionCount = examPaper ? examPaper.questionCount : (paper.questionCount || 75);
@@ -135,14 +137,18 @@ Page({
     try {
       const subjectId = getSubjectIdFromPaper(this.data.paper);
       wx.removeStorageSync(getRandomPracticeCacheKey(subjectId));
-    } catch (e) {}
+    } catch (e) {
+        console.warn('[Exam] cache operation error:', e);
+      }
     wx.redirectTo({ url: '/pages/report/index' });
   },
   onUnload() {
     const app = getApp();
     if (app) app._examTimerActive = false;
     if (this.timer) {
-      try { clearInterval(this.timer); } catch (e) {}
+      try { clearInterval(this.timer); } catch (e) {
+        console.warn('[Exam] cache operation error:', e);
+      }
       this.timer = null;
     }
     // 未正常完成考试（返回、崩溃、被杀进程等）：清除随机抽题缓存，下次进入将重新抽题
@@ -150,7 +156,9 @@ Page({
       try {
         const subjectId = getSubjectIdFromPaper(this.data.paper);
         if (subjectId) wx.removeStorageSync(getRandomPracticeCacheKey(subjectId));
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[Exam] cache operation error:', e);
+      }
     }
   },
   _parseCorrectAnswers(correctAnswer) {
@@ -314,7 +322,9 @@ Page({
           if (examPaper) {
             const paperId = (examPaper._id || paper._id || paper.id) || null;
             if (paperId) {
-              submitAnswer(paperId, answers, timeSpent, 'real').catch(() => {});
+              submitAnswer(paperId, answers, timeSpent, 'real').catch((err) => {
+            console.warn('[Exam] submitAnswer failed:', err);
+          });
             }
           } else {
             submitAnswer(null, answers, timeSpent, 'mock', {
@@ -322,7 +332,9 @@ Page({
               paperTitle,
               results,
               score: accuracyPercent,
-            }).catch(() => {});
+            }).catch((err) => {
+            console.warn('[Exam] submitAnswer failed:', err);
+          });
           }
         }
       } else {
@@ -332,7 +344,9 @@ Page({
       try {
         const subjectId = getSubjectIdFromPaper(this.data.paper);
         wx.removeStorageSync(getRandomPracticeCacheKey(subjectId));
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[Exam] cache operation error:', e);
+      }
       wx.redirectTo({ url: '/pages/report/index' });
       return;
     }

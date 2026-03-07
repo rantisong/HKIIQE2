@@ -204,7 +204,9 @@ Page({
             if (res.result && res.result.success && res.result.data.questions) {
               selectedPaperQuestions = res.result.data.questions.map(normalizeQuestion);
             }
-          } catch (err) {}
+          } catch (err) {
+            console.warn('loadPaperDetail fallback failed:', err);
+          }
         }
       }
     }
@@ -228,7 +230,9 @@ Page({
         } else if (cache && (cache.cachedAt != null || cache.questions != null)) {
           wx.removeStorageSync(cacheKey);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[Paper] get random practice cache error:', e);
+      }
 
       if (selectedPaperQuestions && selectedPaperQuestions.length > 0) {
         app.globalData.selectedExamPaper = selectedExamPaper;
@@ -294,7 +298,9 @@ Page({
           cachedAt: Date.now(),
           questions: selectedPaperQuestions
         });
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[Paper] get random practice cache error:', e);
+      }
     }
 
     if (!selectedPaperQuestions || selectedPaperQuestions.length === 0) {

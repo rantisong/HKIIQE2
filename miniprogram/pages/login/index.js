@@ -33,11 +33,14 @@ Page({
       inviteCodeReadonly,
       statusBarHeight: sys.statusBarHeight || 0,
     });
-    if (getApp().globalData.userInfo) {
-      this.navigateAfterLogin(returnUrl);
-      return;
-    }
+    // 不自动登录，用户需点击"微信一键登录"按钮才能登录
+    // 但仍预填已有用户的信息（如果已注册）
     this.prefillFromExistingUser();
+  },
+
+  onShow() {
+    // 每次显示登录页时，不自动登录，只确保页面状态正确
+    // 用户必须点击"微信一键登录"按钮
   },
 
   onNavBack() {

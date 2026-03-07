@@ -4,25 +4,6 @@ const db = cloud.database();
 const _ = db.command;
 
 /**
- * 获取某 inviteCode 下所有下属的 openid 列表（多层级）
- */
-async function getSubordinateOpenids(usersCol, inviteCode) {
-  const openids = [];
-  let currentCodes = [inviteCode];
-  const IN_MAX = 20;
-  while (currentCodes.length > 0) {
-    const chunk = currentCodes.splice(0, IN_MAX);
-    const res = await usersCol.where({ invitedBy: _.in(chunk) }).get();
-    for (const u of res.data || []) {
-      openids.push(u._openid);
-      const code = (u.inviteCode || '').trim().toUpperCase();
-      if (code) currentCodes.push(code);
-    }
-  }
-  return openids;
-}
-
-/**
  * 从 user_iiqe_records 判断：合资格=01+03 通过，全牌照=01～05 全通过
  */
 function getQualifiedAndFullLicense(records) {
@@ -35,6 +16,9 @@ function getQualifiedAndFullLicense(records) {
   return { qualified, fullLicense };
 }
 
+/**
+ * 获取头像的临时URL（仅处理云存储头像）
+ */
 async function getTempUrlsForAvatars(cloudApi, avatars) {
   const cloudIds = [...new Set(avatars)].filter((a) => a && String(a).trim().startsWith('cloud://'));
   if (cloudIds.length === 0) return new Map();
@@ -52,6 +36,7 @@ async function getTempUrlsForAvatars(cloudApi, avatars) {
 
 /**
  * 所属团队列表：团队长第一，当前用户第二，其余按 createdAt 升序
+ * 优化：不再递归计算 teamSize，直接从冗余字段读取
  */
 exports.main = async () => {
   const wxContext = cloud.getWXContext();
@@ -74,6 +59,7 @@ exports.main = async () => {
     }
 
     const leaderCode = (leader.inviteCode || '').trim().toUpperCase();
+
     const siblingsRes = await usersCol
       .where({ invitedBy: leaderCode })
       .orderBy('createdAt', 'asc')
@@ -84,7 +70,8 @@ exports.main = async () => {
     const avatarMap = await getTempUrlsForAvatars(cloud, allAvatars);
     const resolveAvatar = (url) => (url ? (avatarMap.get(url) || url) : '');
 
-    const toItem = (u, teamSize = 0) => {
+      // 从冗余字段直接读取 teamSize（显示该成员的下属人数，不包含本人）
+      const toItem = (u) => {
       const p = u.profile || {};
       const records = u.user_iiqe_records || [];
       const passedSubjects = records.filter((r) => r && r.passed === true).map((r) => String(r.subjectId || '').padStart(2, '0'));
@@ -97,7 +84,8 @@ exports.main = async () => {
         passedSubjects,
         isMe: u._openid === openid,
         isLeader: false,
-        teamSize,
+        // 显示该成员的下属人数（不包含本人）
+        teamSize: u.directMemberCount || 0,
       };
     };
 
@@ -110,68 +98,26 @@ exports.main = async () => {
       passedSubjects: [],
       isMe: false,
       isLeader: true,
+      // 团队长显示团队总人数
+      teamSize: leader.totalMemberCount || 0,
     };
 
-    const teamSizeByCode = {};
-    for (const s of siblings) {
-      const code = (s.inviteCode || '').trim().toUpperCase();
-      if (!code) continue;
-      try {
-        const openids = await getSubordinateOpenids(usersCol, code);
-        teamSizeByCode[code] = openids.length;
-      } catch (_) {
-        teamSizeByCode[code] = 0;
-      }
-    }
     const members = [leaderItem];
     const meInList = siblings.find((s) => s._openid === openid);
     const others = siblings.filter((s) => s._openid !== openid);
     if (meInList) {
-      const code = (meInList.inviteCode || '').trim().toUpperCase();
-      members.push(toItem(meInList, teamSizeByCode[code] || 0));
+      members.push(toItem(meInList));
     }
     others.forEach((s) => {
-      const code = (s.inviteCode || '').trim().toUpperCase();
-      members.push(toItem(s, teamSizeByCode[code] || 0));
+      members.push(toItem(s));
     });
 
-    const statsCol = db.collection('team_stats');
-    let leaderStats = { team: 0, qualified: 0, fullLicense: 0 };
-    let fromCache = false;
-    try {
-      const cached = await statsCol.doc(leaderCode).get();
-      if (cached.data && typeof cached.data.team === 'number') {
-        leaderStats = {
-          team: cached.data.team,
-          qualified: cached.data.qualified ?? 0,
-          fullLicense: cached.data.fullLicense ?? 0,
-        };
-        fromCache = true;
-      }
-    } catch (_) {}
-    if (!fromCache) {
-      const openids = await getSubordinateOpenids(usersCol, leaderCode);
-      if (openids.length > 0) {
-        leaderStats.team = openids.length;
-        const BATCH = 20;
-        for (let i = 0; i < openids.length; i += BATCH) {
-          const batch = openids.slice(i, i + BATCH);
-          const res = await usersCol.where({ _openid: _.in(batch) }).field({ user_iiqe_records: true }).get();
-          for (const u of res.data || []) {
-            const { qualified, fullLicense } = getQualifiedAndFullLicense(u.user_iiqe_records);
-            if (qualified) leaderStats.qualified += 1;
-            if (fullLicense) leaderStats.fullLicense += 1;
-          }
-        }
-      }
-      try {
-        await statsCol.doc(leaderCode).set({
-          data: { ...leaderStats, updatedAt: new Date() },
-        });
-      } catch (e) {
-        console.warn('team_stats set skip (collection may not exist):', e.message);
-      }
-    }
+    // 直接从团队长的冗余字段读取统计信息
+    const leaderStats = {
+      team: leader.totalMemberCount || 0,
+      qualified: leader.qualifiedCount || 0,
+      fullLicense: leader.fullLicenseCount || 0,
+    };
 
     return { success: true, data: { leader: leaderItem, members, leaderStats } };
   } catch (e) {

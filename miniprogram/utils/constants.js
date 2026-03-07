@@ -7,8 +7,67 @@ const PAPERS = [
   { id: '5', name: '卷五', fullName: '投资相连长期保险', questionCount: 80, durationMinutes: 120, completedCount: 2, passRate: 40 },
 ];
 
+// 科目信息（与 PAPERS 对应）
+const SUBJECTS = {
+  '01': { id: '01', name: '保险原理及实务', nameShort: '卷一', questionCount: 75, duration: 120 },
+  '02': { id: '02', name: '一般保险', nameShort: '卷二', questionCount: 80, duration: 120 },
+  '03': { id: '03', name: '长期保险', nameShort: '卷三', questionCount: 50, duration: 75 },
+  '04': { id: '04', name: '强制性公积金计划', nameShort: '卷四', questionCount: 80, duration: 120 },
+  '05': { id: '05', name: '投资相连长期保险', nameShort: '卷五', questionCount: 80, duration: 120 },
+};
+
+// 科目中文数字映射
+const SUBJECT_LABELS = {
+  '01': '一', '02': '二', '03': '三', '04': '四', '05': '五',
+};
+
 // 合格线：正确率 ≥ 70%
 const PASS_RATE_THRESHOLD = 0.7;
+
+// 默认头像
+const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/avataaars/svg?seed=user';
+
+// ============ 表单验证正则 ============
+const VALIDATORS = {
+  // 邀请码：6位数字或字母组合
+  INVITE_CODE: /^[0-9A-Z]{6}$/,
+  // 昵称：1-20个字符
+  NICKNAME: /^.{1,20}$/,
+  // 手机号（香港）
+  PHONE_HK: /^[569]\d{7}$/,
+  // 邮箱
+  EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+};
+
+// ============ 消息文案 ============
+const MESSAGES = {
+  // 通用
+  LOAD_FAILED: '加载失败，请稍后重试',
+  NETWORK_ERROR: '网络异常，请检查网络',
+  PLEASE_TRY_AGAIN: '请稍后重试',
+
+  // 登录/注册
+  PLEASE_LOGIN: '请先登录',
+  INVITE_CODE_INVALID: '邀请码为6位数字和字母组合，请重新输入',
+  INVITE_CODE_ERROR: '邀请码不正确，请重新输入',
+  PLEASE_FILL_NICKNAME: '请先填写昵称',
+  PLEASE_CHOOSE_AVATAR: '请先选择头像',
+
+  // 考试
+  NO_QUESTIONS: '暂无题目',
+  PAPER_LOAD_FAILED: '加载试卷详情失败',
+  TIME_UP: '时间到，自动提交',
+  SUBMIT_FAILED: '提交失败，请重试',
+  CANNOT_FAVORITE: '题目信息不完整，无法收藏',
+
+  // 团队
+  NO_MEMBERS: '暂无直属成员',
+
+  // 设置
+  SAVE_FAILED: '保存失败',
+  SAVE_SUCCESS: '保存成功',
+  LOGOUT_SUCCESS: '已退出登录',
+};
 
 // 模拟题目
 const MOCK_QUESTIONS = [
@@ -62,7 +121,12 @@ const MOCK_TEAM_MEMBERS = [
 
 module.exports = {
   PAPERS,
+  SUBJECTS,
+  SUBJECT_LABELS,
+  PASS_RATE_THRESHOLD,
+  DEFAULT_AVATAR,
+  VALIDATORS,
+  MESSAGES,
   MOCK_QUESTIONS,
   MOCK_TEAM_MEMBERS,
-  PASS_RATE_THRESHOLD
 };

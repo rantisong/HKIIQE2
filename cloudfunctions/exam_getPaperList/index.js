@@ -55,9 +55,22 @@ exports.main = async (event, context) => {
   try {
     if (paperType === 'mock') {
       const col = db.collection('mock_bank');
-      let query = col.orderBy('subjectId', 'asc');
+      // 只返回列表页需要的字段，不返回 questions（题目详情），避免超过 1MB 限制
+      const fieldSelect = {
+        _id: true,
+        subjectId: true,
+        title: true,
+        name: true,
+        fullName: true,
+        questionCount: true,
+        durationMinutes: true,
+        category: true,
+        createdAt: true,
+        // 不返回 questions 数组
+      };
+      let query = col.field(fieldSelect).orderBy('subjectId', 'asc');
       if (subjectId) {
-        query = col.where({ subjectId }).limit(1);
+        query = col.where({ subjectId }).field(fieldSelect).limit(1);
       } else {
         query = query.skip((page - 1) * pageSize).limit(pageSize);
       }
@@ -79,12 +92,27 @@ exports.main = async (event, context) => {
       const subjectIdNorm = subjectId != null ? norm(subjectId) : '';
       const filterBySubject = subjectIdNorm && /^0[1-5]$/.test(subjectIdNorm);
 
+      // 只返回列表页需要的字段，不返回 questions（题目详情），避免超过 1MB 限制
+      const fieldSelect = {
+        _id: true,
+        subjectId: true,
+        title: true,
+        name: true,
+        fullName: true,
+        questionCount: true,
+        durationMinutes: true,
+        year: true,
+        month: true,
+        createdAt: true,
+        // 不返回 questions 数组
+      };
+
       let list;
       let total;
 
       if (filterBySubject) {
         // 仅 limit 拉取，内存按 subjectId 筛选+排序，不依赖任何索引
-        const allRes = await col.limit(100).get();
+        const allRes = await col.field(fieldSelect).limit(100).get();
         const all = (allRes.data || []).filter((d) => norm(d.subjectId) === subjectIdNorm);
         const sorted = all.sort((a, b) => {
           const ta = (a.createdAt && (a.createdAt.getTime ? a.createdAt.getTime() : a.createdAt)) || 0;
@@ -95,7 +123,7 @@ exports.main = async (event, context) => {
         list = sorted.slice(start, start + pageSize);
         total = sorted.length;
       } else {
-        const allRes = await col.limit(100).get();
+        const allRes = await col.field(fieldSelect).limit(100).get();
         const all = (allRes.data || []).sort((a, b) => {
           const ta = (a.createdAt && (a.createdAt.getTime ? a.createdAt.getTime() : a.createdAt)) || 0;
           const tb = (b.createdAt && (b.createdAt.getTime ? b.createdAt.getTime() : b.createdAt)) || 0;

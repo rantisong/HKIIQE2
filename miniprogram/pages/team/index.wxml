@@ -31,7 +31,7 @@
     <view class="leader-right">
       <view class="leader-badge">
         <text class="badge-icon">👥</text>
-        <text class="badge-text">{{leader.teamSize}}人</text>
+        <text class="badge-text">{{leader.teamSize}}</text>
       </view>
       <text class="leader-arrow">›</text>
     </view>
@@ -64,7 +64,7 @@
         <view class="member-right" wx:if="{{item.hasSubordinates}}">
           <view class="member-badge">
             <text>👥</text>
-            <text>{{item.teamSize}}人</text>
+            <text>{{item.teamSize}}</text>
           </view>
           <text class="member-arrow">›</text>
         </view>

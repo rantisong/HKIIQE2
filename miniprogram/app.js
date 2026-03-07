@@ -8,6 +8,8 @@ App({
       env: "cloud1-7gy0gmcudbbd73eb",
       /** 当前用户信息（来自 user_getUserInfo），未登录为 null */
       userInfo: null,
+      /** 用户是否已注册（通过 openid 查询），未确定时为 undefined */
+      openidInSystem: undefined,
     };
     if (!wx.cloud) {
       console.error("请使用 2.2.3 或以上的基础库以使用云能力");
