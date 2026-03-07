@@ -1,0 +1,9 @@
+{
+  "name": "user_validateInviteCode",
+  "version": "1.0.0",
+  "description": "Validate invite code only, no user creation",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

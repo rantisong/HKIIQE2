@@ -31,6 +31,9 @@
               </view>
             </view>
           </view>
+          <view class="member-right" wx:if="{{item.teamSize > 0}}">
+            <view class="member-badge"><text class="badge-icon">👥</text><text class="badge-text">{{item.teamSize}}人</text></view>
+          </view>
         </view>
       </view>
       <view class="member-list empty" wx:else>

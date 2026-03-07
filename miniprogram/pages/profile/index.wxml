@@ -30,10 +30,10 @@
       <image class="avatar" src="{{avatarDisplay}}" mode="aspectFill" />
       <view class="profile-info">
         <text class="name">{{nicknameDisplay}}</text>
-        <view class="reg-date">
-          <text class="date-icon">🔑</text>
+        <button class="invite-share-row" open-type="share" hover-class="invite-share-row-hover">
           <text class="date-text">邀请码 : {{inviteCodeDisplay}}</text>
-        </view>
+          <view class="invite-share-icon-wrap"><md-icon name="share" size="20" colorClass="white"/></view>
+        </button>
       </view>
     </view>
     <view class="profile-settings-wrap" bindtap="onSettings">

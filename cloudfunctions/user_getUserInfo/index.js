@@ -92,8 +92,8 @@ exports.main = async (event, context) => {
       return { success: true, data: user };
     }
 
-    // 新用户：必须提供有效邀请码
-    if (!INVITE_CODE_REG.test(inviteCodeInput)) {
+    // 新用户：必须提供有效邀请码，否则一律拒绝
+    if (!inviteCodeInput || !INVITE_CODE_REG.test(inviteCodeInput)) {
       return {
         success: false,
         error: '邀请码为6位数字和字母组合，请重新输入',
@@ -101,10 +101,9 @@ exports.main = async (event, context) => {
     }
 
     const isSystemCode = inviteCodeInput === SYSTEM_INVITE_CODE;
-    let invitedBy;
+    let invitedBy = null;
 
     if (isSystemCode) {
-      // 系统邀请码：不归属任何团队，注册为团队根节点
       invitedBy = SYSTEM_INVITE_CODE;
     } else {
       const inviterRes = await usersCol.where({ inviteCode: inviteCodeInput }).limit(1).get();
@@ -122,6 +121,10 @@ exports.main = async (event, context) => {
         };
       }
       invitedBy = inviteCodeInput;
+    }
+
+    if (!invitedBy) {
+      return { success: false, error: '邀请码不正确，请重新输入' };
     }
 
     // 创建新用户（带授权资料则写入），并生成 6 位数字+字母邀请码

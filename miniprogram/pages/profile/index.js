@@ -1,4 +1,4 @@
-const { getProfile, getAnswerStats } = require('../../utils/api');
+const { getProfile, getAnswerStats, validateInviteCode } = require('../../utils/api');
 const { isGuest, DEFAULT_LOGIN_PAGE } = require('../../utils/auth');
 
 const SUBJECT_NAMES = {
@@ -131,13 +131,27 @@ Page({
     });
   },
 
-  onGoLogin() {
+  async onGoLogin() {
     const { guestInviteCode } = this.data;
-    let url = `${DEFAULT_LOGIN_PAGE}?returnUrl=${encodeURIComponent('/pages/profile/index')}`;
-    if (guestInviteCode) {
-      url += `&inviteCode=${encodeURIComponent(guestInviteCode)}`;
+    const code = (guestInviteCode || '').trim().toUpperCase();
+    if (code.length !== 6 || !/^[0-9A-Z]{6}$/.test(code)) {
+      wx.showToast({ title: '邀请码为6位数字和字母组合，请重新输入', icon: 'none', duration: 2500 });
+      return;
     }
-    wx.navigateTo({ url });
+    try {
+      const res = await validateInviteCode(code);
+      const result = res && res.result;
+      if (result && result.success === true && result.valid === true) {
+        let url = `${DEFAULT_LOGIN_PAGE}?returnUrl=${encodeURIComponent('/pages/profile/index')}`;
+        url += `&inviteCode=${encodeURIComponent(code)}`;
+        wx.navigateTo({ url });
+        return;
+      }
+      const errMsg = (result && result.error) || '邀请码不正确，请重新输入';
+      wx.showToast({ title: errMsg, icon: 'none', duration: 2500 });
+    } catch (e) {
+      wx.showToast({ title: '网络异常，请重试', icon: 'none', duration: 2500 });
+    }
   },
 
   setProfileDisplay(user) {
@@ -211,6 +225,17 @@ Page({
 
   onSettings() {
     wx.navigateTo({ url: '/pages/profile-settings/index' });
+  },
+
+  onShareAppMessage() {
+    const code = (this.data.inviteCodeDisplay || '').trim();
+    const path = code && code !== '--'
+      ? `pages/login/index?inviteCode=${encodeURIComponent(code)}`
+      : 'pages/login/index';
+    return {
+      title: 'HKIIQE 邀请你一起备考',
+      path,
+    };
   },
 
   onPullDownRefresh() {

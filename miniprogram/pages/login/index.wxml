@@ -37,9 +37,17 @@
           bindinput="onNicknameInput"
         />
       </view>
-      <view class="invite-code-row" wx:if="{{isNewUser === true}}">
+      <view class="invite-code-row" wx:if="{{isNewUser === true || isNewUser === null}}">
         <text class="label">邀请码（必填）</text>
         <input
+          wx:if="{{inviteCodeReadonly}}"
+          class="nickname-input invite-code-readonly"
+          type="text"
+          value="{{inviteCode}}"
+          disabled
+        />
+        <input
+          wx:else
           class="nickname-input"
           type="text"
           placeholder="请输入6位数字和字母组合"
@@ -56,13 +64,14 @@
         style="margin: 0; width: 100%;"
         type="primary"
         loading="{{loading}}"
-        disabled="{{loading || !nickname || (isNewUser === true && inviteCode.length !== 6)}}"
+        disabled="{{loading || !avatarDisplay || !nickname || ((isNewUser === true || isNewUser === null) && inviteCode.length !== 6)}}"
         bindtap="onConfirmLogin"
       >
         微信一键授权登录
       </button>
     </view>
-    <view class="hint" wx:if="{{!nickname}}">请至少填写昵称</view>
-    <view class="hint" wx:elif="{{isNewUser === true && inviteCode.length !== 6}}">新用户请填写6位邀请码</view>
+    <view class="hint" wx:if="{{!avatarDisplay}}">请先选择头像</view>
+    <view class="hint" wx:elif="{{!nickname}}">请填写昵称</view>
+    <view class="hint" wx:elif="{{(isNewUser === true || isNewUser === null) && inviteCode.length !== 6}}">请填写6位邀请码</view>
   </view>
 </view>

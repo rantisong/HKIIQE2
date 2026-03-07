@@ -151,6 +151,13 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
+  padding: 0;
+}
+
+.profile-info .name,
+.profile-info .invite-share-row {
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .avatar {
@@ -184,6 +191,63 @@
 .date-text {
   font-size: 22rpx;
   opacity: 0.8;
+}
+
+/* 邀请码+分享图标为一整行，点击整块调起分享；与昵称左对齐、白色不粗 */
+.invite-share-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  max-width: 100%;
+  overflow: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-width: 0;
+  height: auto;
+  line-height: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  text-align: left;
+  align-self: flex-start;
+  color: #fff;
+  font-weight: normal;
+  box-sizing: border-box;
+}
+
+.invite-share-row .date-text {
+  color: #fff;
+  font-weight: normal;
+}
+
+.invite-share-row::after {
+  border: none;
+}
+
+/* 覆盖微信 button 默认左右内边距，保证与昵称 F 左对齐 */
+.profile-info .invite-share-row {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.invite-share-row-hover {
+  opacity: 0.85;
+}
+
+/* 图标与邀请码文字同高：约 22rpx，用 scale 缩小（组件内部为 px 无法从外部改） */
+.invite-share-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22rpx;
+  height: 22rpx;
+  overflow: hidden;
+}
+
+.invite-share-icon-wrap > md-icon {
+  transform: scale(0.52);
+  transform-origin: center center;
 }
 
 .profile-settings-wrap {

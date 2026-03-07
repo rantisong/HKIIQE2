@@ -64,6 +64,7 @@ Page({
             avatar: m.avatar || DEFAULT_AVATAR,
             dots,
             isMe: m.isMe === true,
+            teamSize: m.teamSize != null ? m.teamSize : 0,
           };
         });
         const s = stats && typeof stats === 'object' ? stats : {};

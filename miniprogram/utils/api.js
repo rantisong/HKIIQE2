@@ -21,7 +21,9 @@ const callCloud = (functionName, data = {}) => {
 const getUserInfo = (profile, inviteCode) => {
   const data = {};
   if (profile) data.profile = { nickname: profile.nickName, avatar: profile.avatarUrl };
-  if (inviteCode) data.inviteCode = String(inviteCode).trim().toUpperCase();
+  if (inviteCode !== undefined && inviteCode !== null) {
+    data.inviteCode = String(inviteCode).trim().toUpperCase();
+  }
   return callCloud('user_getUserInfo', data);
 };
 
@@ -29,6 +31,14 @@ const getUserInfo = (profile, inviteCode) => {
  * 仅根据 openid 查询用户（不创建），用于登录页预填
  */
 const getProfile = () => callCloud('user_getProfile', {});
+
+/**
+ * 仅校验邀请码是否有效（不创建用户），用于「我的」页点击注册/登录前拦截错误邀请码
+ * @param {string} inviteCode 6 位邀请码
+ * @returns {Promise<{ result: { success, valid, error? } }>}
+ */
+const validateInviteCode = (inviteCode) =>
+  callCloud('user_validateInviteCode', { inviteCode: String(inviteCode || '').trim().toUpperCase() });
 
 /** 更新当前用户资料：常驻城市、香港身份获取时间 */
 const updateProfile = (opts) =>
@@ -209,6 +219,7 @@ const uploadImage = (filePath, prefix = 'avatars') => {
 module.exports = {
   getUserInfo,
   getProfile,
+  validateInviteCode,
   getPaperList,
   getPaperDetail,
   getMockRandomQuestions,

@@ -84,19 +84,20 @@ exports.main = async () => {
     const avatarMap = await getTempUrlsForAvatars(cloud, allAvatars);
     const resolveAvatar = (url) => (url ? (avatarMap.get(url) || url) : '');
 
-    const toItem = (u) => {
+    const toItem = (u, teamSize = 0) => {
       const p = u.profile || {};
       const records = u.user_iiqe_records || [];
       const passedSubjects = records.filter((r) => r && r.passed === true).map((r) => String(r.subjectId || '').padStart(2, '0'));
       return {
         _openid: u._openid,
-        inviteCode: u.inviteCode,
+        inviteCode: (u.inviteCode || '').trim().toUpperCase(),
         nickname: p.nickname || '微信用户',
         avatar: resolveAvatar(p.avatar || ''),
         createdAt: u.createdAt,
         passedSubjects,
         isMe: u._openid === openid,
         isLeader: false,
+        teamSize,
       };
     };
 
@@ -111,11 +112,28 @@ exports.main = async () => {
       isLeader: true,
     };
 
+    const teamSizeByCode = {};
+    for (const s of siblings) {
+      const code = (s.inviteCode || '').trim().toUpperCase();
+      if (!code) continue;
+      try {
+        const openids = await getSubordinateOpenids(usersCol, code);
+        teamSizeByCode[code] = openids.length;
+      } catch (_) {
+        teamSizeByCode[code] = 0;
+      }
+    }
     const members = [leaderItem];
     const meInList = siblings.find((s) => s._openid === openid);
     const others = siblings.filter((s) => s._openid !== openid);
-    if (meInList) members.push(toItem(meInList));
-    others.forEach((s) => members.push(toItem(s)));
+    if (meInList) {
+      const code = (meInList.inviteCode || '').trim().toUpperCase();
+      members.push(toItem(meInList, teamSizeByCode[code] || 0));
+    }
+    others.forEach((s) => {
+      const code = (s.inviteCode || '').trim().toUpperCase();
+      members.push(toItem(s, teamSizeByCode[code] || 0));
+    });
 
     const statsCol = db.collection('team_stats');
     let leaderStats = { team: 0, qualified: 0, fullLicense: 0 };

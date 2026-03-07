@@ -7,6 +7,7 @@ Page({
     avatarUrl: '',
     avatarDisplay: '',
     inviteCode: '',
+    inviteCodeReadonly: false,
     loading: false,
     error: '',
     isNewUser: null,
@@ -25,9 +26,11 @@ Page({
       }
     }
     const inviteCode = (options.inviteCode || '').trim().toUpperCase().slice(0, 6);
+    const inviteCodeReadonly = inviteCode.length === 6;
     this.setData({
       returnUrl,
       inviteCode,
+      inviteCodeReadonly,
       statusBarHeight: sys.statusBarHeight || 0,
     });
     if (getApp().globalData.userInfo) {
@@ -130,24 +133,32 @@ Page({
   },
 
   onConfirmLogin() {
-    const { nickname, avatarUrl, inviteCode, loading, isNewUser } = this.data;
+    const { nickname, avatarUrl, avatarDisplay, inviteCode, loading, isNewUser } = this.data;
     if (loading) return;
-    if (!nickname || !nickname.trim()) {
-      this.setData({ error: '请先填写昵称' });
+    if (!avatarDisplay) {
+      this.setData({ error: '请先选择头像' });
+      wx.showToast({ title: '请先选择头像', icon: 'none', duration: 2000 });
       return;
     }
-    if (isNewUser) {
-      const code = (inviteCode || '').trim().toUpperCase();
+    if (!nickname || !nickname.trim()) {
+      this.setData({ error: '请先填写昵称' });
+      wx.showToast({ title: '请先填写昵称', icon: 'none', duration: 2000 });
+      return;
+    }
+    const code = (inviteCode || '').trim().toUpperCase();
+    const needInviteCode = isNewUser === true || isNewUser === null;
+    if (needInviteCode) {
       if (code.length !== 6 || !/^[0-9A-Z]{6}$/.test(code)) {
         this.setData({ error: '邀请码为6位数字和字母组合，请重新输入' });
+        wx.showToast({ title: '邀请码为6位数字和字母组合，请重新输入', icon: 'none', duration: 2500 });
         return;
       }
     }
     this.setData({ loading: true, error: '' });
-    this.doLogin({
-      nickName: nickname.trim(),
-      avatarUrl: avatarUrl || '',
-    }, (inviteCode || '').trim().toUpperCase());
+    this.doLogin(
+      { nickName: nickname.trim(), avatarUrl: avatarUrl || '' },
+      needInviteCode ? code : (inviteCode || '').trim().toUpperCase()
+    );
   },
 
   navigateAfterLogin(returnUrl) {
@@ -178,11 +189,12 @@ Page({
         (res.errMsg && res.errMsg.indexOf('fail') !== -1 ? '云函数调用失败，请检查网络与云环境' : null) ||
         '登录失败，请重试';
       this.setData({ error: errMsg });
+      wx.showToast({ title: errMsg, icon: 'none', duration: 2500 });
     } catch (e) {
       console.error('login error', e);
-      this.setData({
-        error: (e && (e.errMsg || e.message)) || '网络异常，请重试',
-      });
+      const errMsg = (e && (e.errMsg || e.message)) || '网络异常，请重试';
+      this.setData({ error: errMsg });
+      wx.showToast({ title: errMsg, icon: 'none', duration: 2500 });
     } finally {
       this.setData({ loading: false });
     }
