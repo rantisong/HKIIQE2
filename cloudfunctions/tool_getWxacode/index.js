@@ -3,17 +3,22 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 /**
  * 生成邀请用小程序码（无数量限制），上传云存储后返回 fileID
- * 入参：scene（≤32 字符，建议为邀请码），可选 page、width
+ * 入参：inviteCode（必填，邀请码），可选 page、width。仅用 inviteCode 写入 scene，避免被运行时场景值覆盖
  */
 exports.main = async (event, context) => {
-  const scene = event.scene ? String(event.scene).trim().slice(0, 32) : '';
-  if (!scene) {
-    return { success: false, error: 'scene 不能为空' };
+  const inviteCode = (event.inviteCode != null && event.inviteCode !== '')
+    ? String(event.inviteCode).trim().replace(/\s+/g, '').slice(0, 32)
+    : '';
+  if (!inviteCode) {
+    return { success: false, error: '邀请码不能为空' };
+  }
+  if (!/^[0-9A-Za-z]+$/.test(inviteCode)) {
+    return { success: false, error: '邀请码仅支持数字与英文字母' };
   }
 
   try {
     const res = await cloud.openapi.wxacode.getUnlimited({
-      scene,
+      scene: inviteCode,
       page: event.page || 'pages/login/index',
       width: event.width || 280,
     });
@@ -22,7 +27,7 @@ exports.main = async (event, context) => {
       return { success: false, error: '生成小程序码失败' };
     }
 
-    const cloudPath = `wxacode/invite_${scene}_${Date.now()}.png`;
+    const cloudPath = `wxacode/invite_${inviteCode}_${Date.now()}.png`;
     const uploadRes = await cloud.uploadFile({
       cloudPath,
       fileContent: res.buffer,
@@ -32,6 +37,9 @@ exports.main = async (event, context) => {
       success: true,
       data: {
         fileID: uploadRes.fileID,
+        /** 本次写入小程序码的 scene，扫码后应在登录页带出 */
+        scene: inviteCode,
+        page: event.page || 'pages/login/index',
       },
     };
   } catch (e) {

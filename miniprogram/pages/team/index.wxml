@@ -2,10 +2,16 @@
   <guest-hint />
   <view class="header">
     <view class="title-row">
-      <text class="title">我的团队</text><view class="title-share-wrap" wx:if="{{!isGuest}}">
-        <button class="title-share-btn" open-type="share" hover-class="title-share-btn-hover">
-          <md-icon name="share" size="28" colorClass="brand"/>
-        </button>
+      <view class="title-left">
+        <text class="title">我的团队</text>
+        <view class="title-share-wrap" wx:if="{{!isGuest}}">
+          <button class="title-share-btn" open-type="share" hover-class="title-share-btn-hover">
+            <md-icon name="share" size="28" colorClass="brand"/>
+          </button>
+        </view>
+      </view>
+      <view class="title-qr-wrap" wx:if="{{!isGuest}}" bindtap="onShowInviteQR">
+        <md-icon name="qr_code" size="28" colorClass="brand"/>
       </view>
     </view>
     <text class="subtitle">一个人可以走很快，一群人才能走更远。</text>
@@ -72,6 +78,20 @@
     </view>
     <view class="member-list empty" wx:else>
       <text class="empty-text">暂无直属成员</text>
+    </view>
+  </view>
+
+  <canvas canvas-id="qrSaveCanvas" class="qr-save-canvas"></canvas>
+  <!-- 邀请二维码弹窗 -->
+  <view class="qr-modal-mask" wx:if="{{showQrModal}}" catchtap="onCloseQrModal"></view>
+  <view class="qr-modal" wx:if="{{showQrModal}}">
+    <text class="qr-modal-title">欢迎使用HKIIQE</text>
+    <image wx:if="{{qrCodeUrl}}" class="qr-modal-image" src="{{qrCodeUrl}}" mode="aspectFit" />
+    <text wx:if="{{qrCodeUrl && qrSceneUsed}}" class="qr-modal-scene-hint">邀请码: {{qrSceneUsed}}</text>
+    <view wx:if="{{qrCodeLoading}}" class="qr-modal-loading">生成中...</view>
+    <view class="qr-modal-actions">
+      <button class="qr-modal-btn secondary" bindtap="onCloseQrModal">关闭</button>
+      <button wx:if="{{qrCodeUrl}}" class="qr-modal-btn primary" bindtap="onSaveQrImage">保存图片</button>
     </view>
   </view>
 </scroll-view>

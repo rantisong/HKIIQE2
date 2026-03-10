@@ -1,4 +1,4 @@
-const { getProfile, getTeamMyStats, getTeamMyLeader, getTeamMyDirectMembers } = require('../../utils/api');
+const { getProfile, getTeamMyStats, getTeamMyLeader, getTeamMyDirectMembers, getInviteWxacode } = require('../../utils/api');
 const { isGuest } = require('../../utils/auth');
 
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/avataaars/svg?seed=user';
@@ -17,6 +17,10 @@ Page({
     error: '',
     inviteCodeDisplay: '',
     isGuest: true,
+    showQrModal: false,
+    qrCodeUrl: '',
+    qrCodeLoading: false,
+    qrSceneUsed: '',
   },
 
   async onShow() {
@@ -114,6 +118,92 @@ Page({
     wx.navigateTo({
       url: '/pages/team-detail/index?type=member&inviteCode=' + encodeURIComponent(item.inviteCode || ''),
     });
+  },
+
+  async onShowInviteQR() {
+    const code = (this.data.inviteCodeDisplay || '').trim();
+    if (!code) {
+      wx.showToast({ title: '暂无邀请码', icon: 'none' });
+      return;
+    }
+    this.setData({ showQrModal: true, qrCodeLoading: true, qrCodeUrl: '' });
+    try {
+      const res = await getInviteWxacode(code);
+      const result = res.result || res;
+      const ok = result.success && result.data && result.data.fileID;
+      if (!ok) {
+        wx.showToast({ title: result.error || '生成失败', icon: 'none' });
+        this.setData({ showQrModal: false, qrCodeLoading: false });
+        return;
+      }
+      const tempRes = await wx.cloud.getTempFileURL({ fileList: [result.data.fileID] });
+      const url = (tempRes.fileList && tempRes.fileList[0] && tempRes.fileList[0].tempFileURL) || '';
+      const sceneUsed = result.data.scene || this.data.inviteCodeDisplay || '';
+      this.setData({ qrCodeUrl: url, qrCodeLoading: false, qrSceneUsed: sceneUsed });
+    } catch (e) {
+      wx.showToast({ title: (e && e.message) || '生成失败', icon: 'none' });
+      this.setData({ showQrModal: false, qrCodeLoading: false });
+    }
+  },
+
+  onCloseQrModal() {
+    this.setData({ showQrModal: false });
+  },
+
+  async onSaveQrImage() {
+    const url = this.data.qrCodeUrl;
+    const codeText = (this.data.qrSceneUsed || this.data.inviteCodeDisplay || '').trim();
+    if (!url) return;
+    wx.showLoading({ title: '保存中...' });
+    const handleSaveErr = (e) => {
+      if (e && e.errMsg && e.errMsg.indexOf('auth deny') !== -1) {
+        wx.showModal({
+          title: '提示',
+          content: '需要您授权保存图片到相册',
+          confirmText: '去设置',
+          success: (r) => { if (r.confirm) wx.openSetting(); },
+        });
+      } else {
+        wx.showToast({ title: (e && (e.message || e.errMsg)) || '保存失败', icon: 'none' });
+      }
+    };
+    try {
+      const downloadRes = await new Promise((resolve, reject) => {
+        wx.downloadFile({ url, success: resolve, fail: reject });
+      });
+      if (downloadRes.statusCode !== 200) throw new Error('下载失败');
+      const qrPath = downloadRes.tempFilePath;
+      if (codeText) {
+        const w = 400;
+        const h = 480;
+        const ctx = wx.createCanvasContext('qrSaveCanvas', this);
+        ctx.drawImage(qrPath, 0, 0, w, w);
+        ctx.setFillStyle('#07C160');
+        ctx.setFontSize(18);
+        ctx.setTextAlign('center');
+        ctx.fillText('邀请码 ' + codeText, w / 2, w + 36);
+        ctx.draw(false, () => {
+          wx.canvasToTempFilePath({
+            canvasId: 'qrSaveCanvas',
+            width: w,
+            height: h,
+            success: (res) => {
+              wx.saveImageToPhotosAlbum({ filePath: res.tempFilePath })
+                .then(() => { wx.hideLoading(); wx.showToast({ title: '已保存到相册', icon: 'success' }); })
+                .catch((err) => { wx.hideLoading(); handleSaveErr(err); });
+            },
+            fail: () => { wx.hideLoading(); wx.showToast({ title: '生成图片失败', icon: 'none' }); },
+          }, this);
+        });
+      } else {
+        await wx.saveImageToPhotosAlbum({ filePath: qrPath });
+        wx.showToast({ title: '已保存到相册', icon: 'success' });
+      }
+    } catch (e) {
+      handleSaveErr(e);
+    } finally {
+      if (!codeText) wx.hideLoading();
+    }
   },
 
   onShareAppMessage() {

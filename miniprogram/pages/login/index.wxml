@@ -37,7 +37,7 @@
           bindinput="onNicknameInput"
         />
       </view>
-      <view class="invite-code-row" wx:if="{{isNewUser === true || isNewUser === null}}">
+      <view class="invite-code-row" wx:if="{{isNewUser === true || isNewUser === null || inviteCodeReadonly}}">
         <text class="label">邀请码（必填）</text>
         <input
           wx:if="{{inviteCodeReadonly}}"
@@ -45,6 +45,7 @@
           type="text"
           value="{{inviteCode}}"
           disabled
+          placeholder=""
         />
         <input
           wx:else

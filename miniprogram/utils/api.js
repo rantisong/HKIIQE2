@@ -145,6 +145,12 @@ const getTeamMyDirectMembers = () => callCloud('team_getMyDirectMembers', {});
 /** 某成员的团队页数据（inviteCode 或 openid） */
 const getTeamMemberTeam = (opts) => callCloud('team_getMemberTeam', opts);
 
+/** 生成邀请用小程序码（scene 为邀请码；page 仅能传路径不能带参数，扫码后邀请码需从弹窗/保存图手动输入） */
+const getInviteWxacode = (inviteCode) => {
+  const code = String(inviteCode || '').trim().slice(0, 32);
+  return callCloud('tool_getWxacode', { inviteCode: code, page: 'pages/login/index' });
+};
+
 /** 修改被邀请码（加入新团队） */
 const updateInvitedBy = (inviteCode) =>
   callCloud('user_updateInvitedBy', { inviteCode });
@@ -235,6 +241,7 @@ module.exports = {
   getTeamMyLeaderTeam,
   getTeamMyDirectMembers,
   getTeamMemberTeam,
+  getInviteWxacode,
   updateInvitedBy,
   updateIiqeRecords,
   getReviewList,
