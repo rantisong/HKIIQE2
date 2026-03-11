@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "md-icon": "/components/md-icon/index"
+  }
+}

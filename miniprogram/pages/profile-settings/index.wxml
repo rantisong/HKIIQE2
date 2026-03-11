@@ -1,4 +1,41 @@
 <scroll-view scroll-y class="page" enhanced>
+  <view class="require-phone-hint" wx:if="{{requirePhone}}">团队长跟你失联了，请设置联系电话以继续使用。</view>
+  <view class="section section-account">
+    <view class="section-title">账号信息</view>
+    <view class="account-row">
+      <view class="account-label">头像</view>
+      <view class="account-avatar-wrap">
+        <button class="account-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <image class="account-avatar" src="{{avatarDisplay}}" mode="aspectFill" />
+        </button>
+      </view>
+    </view>
+    <view class="account-row">
+      <view class="account-label">昵称</view>
+      <input
+        class="account-input"
+        type="nickname"
+        placeholder="请输入昵称"
+        value="{{nickname}}"
+        bindinput="onAccountNicknameInput"
+      />
+    </view>
+    <view class="account-row">
+      <view class="account-label">联系电话</view>
+      <input
+        class="account-input"
+        type="number"
+        placeholder="请设置联系电话"
+        value="{{phone}}"
+        maxlength="11"
+        bindinput="onAccountPhoneInput"
+      />
+    </view>
+    <view class="save-row">
+      <button class="btn-sm" type="primary" loading="{{accountLoading}}" disabled="{{accountLoading}}" bindtap="onAccountSave">保存</button>
+    </view>
+  </view>
+
   <view class="section">
     <view class="section-title">团队邀请码</view>
     <view class="hint">填写邀请人邀请码后，您将加入该邀请人的团队。</view>

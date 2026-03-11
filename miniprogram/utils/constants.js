@@ -35,6 +35,8 @@ const VALIDATORS = {
   NICKNAME: /^.{1,20}$/,
   // 手机号（香港）
   PHONE_HK: /^[569]\d{7}$/,
+  // 联系电话：8位或11位数字
+  PHONE: /^(?:\d{8}|\d{11})$/,
   // 邮箱
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 };
@@ -62,6 +64,8 @@ const MESSAGES = {
 
   // 团队
   NO_MEMBERS: '暂无直属成员',
+  // 联系电话
+  PHONE_INVALID: '联系电话不正确，请重新输入',
 
   // 设置
   SAVE_FAILED: '保存失败',

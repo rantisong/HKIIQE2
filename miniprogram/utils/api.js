@@ -17,13 +17,15 @@ const callCloud = (functionName, data = {}) => {
  * 获取/创建用户信息（登录/注册）
  * @param {object} [profile] 可选，{ nickName, avatarUrl }，会传给云函数作为 profile
  * @param {string} [inviteCode] 可选，邀请码（仅新用户注册时生效）
+ * @param {string} [phone] 可选，联系电话（新用户必填，老用户可选更新）
  */
-const getUserInfo = (profile, inviteCode) => {
+const getUserInfo = (profile, inviteCode, phone) => {
   const data = {};
   if (profile) data.profile = { nickname: profile.nickName, avatar: profile.avatarUrl };
   if (inviteCode !== undefined && inviteCode !== null) {
     data.inviteCode = String(inviteCode).trim().toUpperCase();
   }
+  if (phone !== undefined && phone !== null) data.phone = String(phone).trim();
   return callCloud('user_getUserInfo', data);
 };
 
@@ -40,9 +42,14 @@ const getProfile = () => callCloud('user_getProfile', {});
 const validateInviteCode = (inviteCode) =>
   callCloud('user_validateInviteCode', { inviteCode: String(inviteCode || '').trim().toUpperCase() });
 
-/** 更新当前用户资料：常驻城市、香港身份获取时间 */
+/** 更新当前用户资料：头像、昵称、联系电话、常驻城市、香港身份获取时间 */
 const updateProfile = (opts) =>
-  callCloud('user_updateProfile', { city: opts.city, hkIdentityAcquiredAt: opts.hkIdentityAcquiredAt });
+  callCloud('user_updateProfile', {
+    city: opts.city,
+    hkIdentityAcquiredAt: opts.hkIdentityAcquiredAt,
+    phone: opts.phone,
+    profile: opts.profile,
+  });
 
 // ============ 考试模块 ============
 
@@ -145,6 +152,10 @@ const getTeamMyDirectMembers = () => callCloud('team_getMyDirectMembers', {});
 /** 某成员的团队页数据（inviteCode 或 openid） */
 const getTeamMemberTeam = (opts) => callCloud('team_getMemberTeam', opts);
 
+/** 直属成员详情（仅当前用户的直接下属，用于成员详情页） */
+const getTeamMemberDetail = (inviteCode) =>
+  callCloud('team_getMemberDetail', { inviteCode: String(inviteCode || '').trim().toUpperCase() });
+
 /** 生成邀请用小程序码（scene 为邀请码；page 仅能传路径不能带参数，扫码后邀请码需从弹窗/保存图手动输入） */
 const getInviteWxacode = (inviteCode) => {
   const code = String(inviteCode || '').trim().slice(0, 32);
@@ -241,6 +252,7 @@ module.exports = {
   getTeamMyLeaderTeam,
   getTeamMyDirectMembers,
   getTeamMemberTeam,
+  getTeamMemberDetail,
   getInviteWxacode,
   updateInvitedBy,
   updateIiqeRecords,

@@ -1,0 +1,9 @@
+{
+  "name": "team_getMemberDetail",
+  "version": "1.0.0",
+  "description": "Get direct member detail by inviteCode",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

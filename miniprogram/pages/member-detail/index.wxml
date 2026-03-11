@@ -1,0 +1,52 @@
+<scroll-view scroll-y class="page hide-scrollbar" enhanced show-scrollbar="{{false}}">
+  <view class="error-block" wx:if="{{error}}">{{error}}</view>
+  <view class="loading-tip" wx:elif="{{loading}}">加载中...</view>
+
+  <block wx:elif="{{member}}">
+    <!-- 基本信息卡片 -->
+    <view class="card info-card">
+      <view class="info-row">
+        <view class="avatar-wrap">
+          <image class="info-avatar" src="{{member.avatar}}" mode="aspectFill" />
+        </view>
+        <view class="info-main">
+          <text class="info-name">{{member.nickname}}</text>
+          <view class="info-meta" wx:if="{{member.city}}">
+            <md-icon name="location_on" size="16" colorClass="muted"/>
+            <text class="info-meta-text">{{member.city}}</text>
+          </view>
+          <view class="info-meta" wx:if="{{member.entryDate}}">
+            <md-icon name="event" size="16" colorClass="muted"/>
+            <text class="info-meta-text">入职: {{member.entryDate}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 手机号码 -->
+    <view class="card row-card">
+      <view class="row-icon phone-icon">
+        <md-icon name="phone" size="24" colorClass="blue"/>
+      </view>
+      <view class="row-content">
+        <text class="row-label">手机号码</text>
+        <text class="row-value {{member.phone ? '' : 'row-value-empty'}}">{{member.phone || '未填写'}}</text>
+      </view>
+    </view>
+
+    <!-- 香港身份状态 -->
+    <view class="card row-card">
+      <view class="row-icon identity-icon">
+        <md-icon name="badge" size="24" colorClass="success"/>
+      </view>
+      <view class="row-content">
+        <text class="row-label">香港身份状态</text>
+        <text class="row-value {{member.hkIdentityAcquiredAt ? '' : 'row-value-empty'}}">{{member.hkIdentityAcquiredAt ? '已获香港身份' : '未填写'}}</text>
+        <text class="row-extra" wx:if="{{member.hkIdentityAcquiredAt}}">获取日期 {{member.hkIdentityAcquiredAt}}</text>
+      </view>
+    </view>
+
+    <!-- 考试进度（与「我的」页同组件、同样式，只读） -->
+    <exam-progress list="{{examProgressList}}" readonly="{{true}}" />
+  </block>
+</scroll-view>

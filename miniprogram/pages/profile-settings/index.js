@@ -1,5 +1,8 @@
-const { getProfile, getTeamMyLeader, updateInvitedBy, updateProfile } = require('../../utils/api');
+const { getProfile, getTeamMyLeader, updateInvitedBy, updateProfile, uploadImage, getPhoneNumberByCode } = require('../../utils/api');
 const { requireLogin } = require('../../utils/auth');
+const { VALIDATORS, MESSAGES } = require('../../utils/constants');
+
+const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/avataaars/svg?seed=user';
 
 function formatInviterNickname(nickname = '') {
   const raw = String(nickname || '').trim();
@@ -13,6 +16,12 @@ function formatInviterNickname(nickname = '') {
 
 Page({
   data: {
+    requirePhone: false,
+    avatarDisplay: '',
+    avatarUrl: '',
+    nickname: '',
+    phone: '',
+    accountLoading: false,
     inviteCode: '',
     inviteError: '',
     inviteLoading: false,
@@ -31,9 +40,12 @@ Page({
     hkLoading: false,
   },
 
-  async onLoad() {
-    await requireLogin('/pages/profile-settings/index');
-    this.loadProfile();
+  onLoad(options) {
+    const requirePhone = (options.requirePhone || '') === '1';
+    this.setData({ requirePhone });
+    requireLogin('/pages/profile-settings/index').then((ok) => {
+      if (ok) this.loadProfile();
+    });
   },
 
   async loadProfile() {
@@ -41,6 +53,10 @@ Page({
       const res = await getProfile();
       if (res.result && res.result.success && res.result.data) {
         const u = res.result.data;
+        const profile = u.profile || {};
+        const avatar = (profile.avatar || '').trim();
+        const nickname = (profile.nickname || '').trim() || '';
+        const phone = (u.phone || '').trim();
         const city = u.city || '';
         let region = [];
         if (city) {
@@ -51,6 +67,10 @@ Page({
         const hk = u.hkIdentityAcquiredAt || '';
         const inv = (u.invitedBy && String(u.invitedBy).trim()) || '';
         this.setData({
+          avatarDisplay: avatar || DEFAULT_AVATAR,
+          avatarUrl: avatar,
+          nickname,
+          phone,
           inviteCode: '',
           city,
           cityDisplay: city,
@@ -82,6 +102,74 @@ Page({
       }
     } catch (e) {
       console.error('loadProfile', e);
+    }
+  },
+
+  onAccountNicknameInput(e) {
+    this.setData({ nickname: (e.detail && e.detail.value) || '' });
+  },
+
+  onAccountPhoneInput(e) {
+    const raw = (e.detail && e.detail.value || '').replace(/\D/g, '').slice(0, 11);
+    this.setData({ phone: raw });
+  },
+
+  onChooseAvatar(e) {
+    const tempPath = (e.detail && e.detail.avatarUrl) || (e.detail && e.detail.tempFilePath) || '';
+    if (!tempPath) return;
+    this.setData({ accountLoading: true });
+    uploadImage(tempPath)
+      .then((res) => {
+        const fileID = (res && res.fileID) || '';
+        this.setData({
+          avatarUrl: fileID,
+          avatarDisplay: fileID || tempPath,
+          accountLoading: false,
+        });
+      })
+      .catch((err) => {
+        wx.showToast({ title: (err && (err.message || err.errMsg)) || '头像上传失败', icon: 'none' });
+        this.setData({ accountLoading: false });
+      });
+  },
+
+  async onAccountSave() {
+    const { nickname, phone, avatarUrl, avatarDisplay } = this.data;
+    const phoneTrim = (phone || '').trim();
+    if (this.data.requirePhone && !phoneTrim) {
+      wx.showToast({ title: '请填写联系电话', icon: 'none' });
+      return;
+    }
+    if (phoneTrim && !VALIDATORS.PHONE.test(phoneTrim)) {
+      wx.showToast({ title: MESSAGES.PHONE_INVALID, icon: 'none' });
+      return;
+    }
+    this.setData({ accountLoading: true });
+    try {
+      const avatarToSend = avatarUrl || (avatarDisplay && avatarDisplay.startsWith('cloud://') ? avatarDisplay : '');
+      const res = await updateProfile({
+        profile: { nickname: (nickname || '').trim(), avatar: avatarToSend },
+        phone: phoneTrim,
+      });
+      if (res.result && res.result.success) {
+        wx.showToast({ title: '已保存', icon: 'success' });
+        getApp().globalData.userInfo = Object.assign({}, getApp().globalData.userInfo || {}, {
+          phone: phoneTrim,
+          profile: { nickname: (nickname || '').trim(), avatar: avatarUrl || avatarDisplay || '' },
+        });
+        if (this.data.requirePhone) {
+          this.setData({ requirePhone: false });
+          wx.reLaunch({ url: '/pages/profile/index' });
+        }
+      } else {
+        const errMsg = (res.result && res.result.error) || '保存失败';
+        wx.showToast({ title: errMsg, icon: 'none', duration: 2500 });
+      }
+    } catch (e) {
+      const errMsg = (e && (e.message || e.errMsg)) || '保存失败';
+      wx.showToast({ title: errMsg, icon: 'none', duration: 2500 });
+    } finally {
+      this.setData({ accountLoading: false });
     }
   },
 

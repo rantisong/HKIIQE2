@@ -1,60 +1,6 @@
 const { getProfile, getAnswerStats, validateInviteCode } = require('../../utils/api');
 const { isGuest, DEFAULT_LOGIN_PAGE } = require('../../utils/auth');
-
-const SUBJECT_NAMES = {
-  '01': '保险原理及实务',
-  '02': '一般保险',
-  '03': '长期保险',
-  '04': '强制性公积金计划考试',
-  '05': '投资相连长期保险',
-};
-
-const SUBJECT_LABELS = { '01': '一', '02': '二', '03': '三', '04': '四', '05': '五' };
-
-function normalizeIiqeRecords(list) {
-  const ids = ['01', '02', '03', '04', '05'];
-  const arr = Array.isArray(list) ? list : [];
-  const byId = {};
-  arr.forEach((r) => {
-    const sid = String(r.subjectId || '').padStart(2, '0');
-    if (ids.includes(sid)) byId[sid] = r;
-  });
-  return ids.map((sid) => {
-    const r = byId[sid] || {};
-    const examTime = r.examTime || '';
-    const examDate = examTime ? new Date(examTime) : null;
-    const now = new Date();
-    let countdownText = '';
-    let countdownClass = '';
-    if (examDate && !isNaN(examDate.getTime())) {
-      const diffMs = examDate.getTime() - now.getTime();
-      const diffDays = Math.ceil(diffMs / (24 * 60 * 60 * 1000));
-      if (diffDays > 0) countdownText = `倒计时 ${diffDays}天`;
-      else if (diffDays === 0) countdownText = '今天';
-      else countdownText = '已过期';
-      countdownClass = diffDays < 0 ? 'expired' : '';
-    }
-    const passedAt = r.passedAt || '';
-    let passedAtDisplay = '';
-    if (passedAt) {
-      const d = new Date(passedAt);
-      if (!isNaN(d.getTime())) passedAtDisplay = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      else passedAtDisplay = passedAt;
-    }
-    return {
-      subjectId: sid,
-      subjectLabel: SUBJECT_LABELS[sid] || sid,
-      subjectName: r.subjectName || SUBJECT_NAMES[sid] || '',
-      examTime: examTime,
-      examTimeDisplay: examTime ? (examTime.length > 16 ? examTime.slice(0, 16) : examTime) : '',
-      hasExamTime: !!examTime,
-      countdownText,
-      countdownClass,
-      passed: !!r.passed,
-      passedAt: passedAtDisplay,
-    };
-  });
-}
+const { normalizeIiqeRecords } = require('../../utils/examProgress');
 
 function memberDays(createdAt) {
   if (!createdAt) return 0;
@@ -186,6 +132,10 @@ Page({
         this.setData({
           examProgressList: normalizeIiqeRecords(user.user_iiqe_records),
         });
+        if (!(user.phone && String(user.phone).trim())) {
+          wx.redirectTo({ url: '/pages/profile-settings/index?requirePhone=1' });
+          return;
+        }
       }
 
       const statsRes = await getAnswerStats();

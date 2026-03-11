@@ -11,6 +11,7 @@
     "pages/report/index",
     "pages/review-session/index",
     "pages/team-detail/index",
+    "pages/member-detail/index",
     "pages/profile-iiqe/index",
     "pages/profile-invite/index",
     "pages/profile-settings/index"

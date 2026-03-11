@@ -112,6 +112,14 @@ Page({
     });
   },
 
+  onMemberAvatarTap(e) {
+    const inviteCode = e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.inviteCode;
+    if (!inviteCode || isGuest()) return;
+    wx.navigateTo({
+      url: '/pages/member-detail/index?inviteCode=' + encodeURIComponent(inviteCode),
+    });
+  },
+
   async onMemberTap(e) {
     const item = e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.item;
     if (!item || !item.hasSubordinates || isGuest()) return;

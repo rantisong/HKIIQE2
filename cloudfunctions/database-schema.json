@@ -11,6 +11,7 @@
         "nickname": "用户昵称",
         "avatar": "头像URL"
       },
+      "phone": "联系电话（可选，老用户未设置时需强制补填）",
       "role": "用户角色（student/teacher/admin）",
       "city": "常驻城市（省+市，可选）",
       "hkIdentityAcquiredAt": "香港身份获取时间，yyyy-MM-dd（可选，空表示未获得）",

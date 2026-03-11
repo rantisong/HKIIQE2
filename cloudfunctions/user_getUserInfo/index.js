@@ -56,6 +56,7 @@ exports.main = async (event, context) => {
         avatar: event.profile.avatar || event.profile.avatarUrl || '',
       }
     : null;
+  const phoneInput = typeof event.phone === 'string' ? event.phone.trim() : (profileInput && typeof profileInput.phone === 'string' ? profileInput.phone.trim() : '');
   const inviteCodeInput = typeof event.inviteCode === 'string' ? event.inviteCode.trim().toUpperCase() : '';
 
   if (!openid) {
@@ -78,15 +79,21 @@ exports.main = async (event, context) => {
         });
         user = { ...user, inviteCode: code, updatedAt: new Date() };
       }
+      const updateData = { updatedAt: new Date() };
       if (profileInput && (profileInput.nickname || profileInput.avatar)) {
         const profile = {
           nickname: profileInput.nickname || (user.profile && user.profile.nickname) || '',
           avatar: profileInput.avatar || (user.profile && user.profile.avatar) || '',
         };
-        await usersCol.doc(user._id).update({
-          data: { updatedAt: new Date(), profile },
-        });
+        updateData.profile = profile;
         user.profile = profile;
+      }
+      if (phoneInput !== '') {
+        updateData.phone = phoneInput;
+        user.phone = phoneInput;
+      }
+      if (Object.keys(updateData).length > 1) {
+        await usersCol.doc(user._id).update({ data: updateData });
         user.updatedAt = new Date();
       }
       return { success: true, data: user };
@@ -139,6 +146,7 @@ exports.main = async (event, context) => {
       profile: profileInput
         ? { nickname: profileInput.nickname, avatar: profileInput.avatar }
         : { nickname: '', avatar: '' },
+      phone: phoneInput || '',
     };
     const addRes = await usersCol.add({ data: newUser });
     if (!isSystemCode) {

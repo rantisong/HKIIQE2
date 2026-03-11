@@ -54,7 +54,13 @@
         bindtap="onMemberTap"
       >
         <view class="member-left">
-          <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill" />
+          <image
+            class="member-avatar"
+            src="{{item.avatar}}"
+            mode="aspectFill"
+            data-invite-code="{{item.inviteCode}}"
+            catchtap="onMemberAvatarTap"
+          />
           <view class="member-info">
             <text class="member-name">{{item.name}}</text>
             <view class="progress-dots">

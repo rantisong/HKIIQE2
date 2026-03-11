@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "我的",
+  "navigationBarTitleText": "成员详情",
   "usingComponents": {
     "md-icon": "/components/md-icon/index",
     "exam-progress": "/components/exam-progress/index"

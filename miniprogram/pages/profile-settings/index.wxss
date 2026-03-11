@@ -13,6 +13,80 @@
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
 }
 
+.section-account .account-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.section-account .account-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.account-label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #334155;
+  flex-shrink: 0;
+}
+
+/* 外层固定正方形 + 圆形裁剪，避免 button 默认样式导致变形 */
+.account-avatar-wrap {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.account-avatar-btn {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: none;
+  border-radius: 0;
+  display: block;
+  line-height: 0;
+}
+
+.account-avatar-btn::after {
+  border: none;
+}
+
+.account-avatar {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  display: block;
+  background: #f1f5f9;
+  vertical-align: top;
+}
+
+.account-input {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 16rpx;
+  background: #fff;
+}
+
+.require-phone-hint {
+  font-size: 22rpx;
+  font-style: italic;
+  color: #dc2626;
+  margin: 0 0 24rpx 0;
+  padding: 24rpx 32rpx;
+  background: #fef2f2;
+  border-radius: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .section-title {
   font-size: 30rpx;
   font-weight: bold;

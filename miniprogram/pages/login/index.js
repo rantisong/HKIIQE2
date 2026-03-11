@@ -1,4 +1,5 @@
 const { getUserInfo, getProfile, uploadImage } = require('../../utils/api');
+const { VALIDATORS, MESSAGES } = require('../../utils/constants');
 
 Page({
   data: {
@@ -6,6 +7,7 @@ Page({
     avatarTempPath: '',
     avatarUrl: '',
     avatarDisplay: '',
+    phone: '',
     inviteCode: '',
     inviteCodeReadonly: false,
     loading: false,
@@ -63,11 +65,13 @@ Page({
         const profile = user.profile || {};
         const nickname = (profile.nickname || '').trim();
         const avatar = (profile.avatar || '').trim();
+        const phone = (user.phone || '').trim();
         this.setData({
           isNewUser: false,
           nickname: nickname || this.data.nickname,
           avatarUrl: avatar || this.data.avatarUrl,
           avatarDisplay: avatar || this.data.avatarDisplay,
+          phone: phone || this.data.phone,
         });
       })
       .catch(() => {
@@ -127,6 +131,14 @@ Page({
     });
   },
 
+  onPhoneInput(e) {
+    const raw = (e.detail.value || '').replace(/\D/g, '').slice(0, 11);
+    this.setData({
+      phone: raw,
+      error: '',
+    });
+  },
+
   onInviteCodeInput(e) {
     const raw = (e.detail.value || '').trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
     this.setData({
@@ -136,7 +148,7 @@ Page({
   },
 
   onConfirmLogin() {
-    const { nickname, avatarUrl, avatarDisplay, inviteCode, loading, isNewUser } = this.data;
+    const { nickname, avatarUrl, avatarDisplay, phone, inviteCode, loading, isNewUser } = this.data;
     if (loading) return;
     if (!avatarDisplay) {
       this.setData({ error: '请先选择头像' });
@@ -146,6 +158,18 @@ Page({
     if (!nickname || !nickname.trim()) {
       this.setData({ error: '请先填写昵称' });
       wx.showToast({ title: '请先填写昵称', icon: 'none', duration: 2000 });
+      return;
+    }
+    const phoneTrim = (phone || '').trim();
+    const needPhone = isNewUser === true || isNewUser === null;
+    if (needPhone && !phoneTrim) {
+      this.setData({ error: '请填写联系电话' });
+      wx.showToast({ title: '请填写联系电话', icon: 'none', duration: 2000 });
+      return;
+    }
+    if (needPhone && phoneTrim && !VALIDATORS.PHONE.test(phoneTrim)) {
+      this.setData({ error: MESSAGES.PHONE_INVALID });
+      wx.showToast({ title: MESSAGES.PHONE_INVALID, icon: 'none', duration: 2000 });
       return;
     }
     const code = (inviteCode || '').trim().toUpperCase();
@@ -160,7 +184,8 @@ Page({
     this.setData({ loading: true, error: '' });
     this.doLogin(
       { nickName: nickname.trim(), avatarUrl: avatarUrl || '' },
-      needInviteCode ? code : (inviteCode || '').trim().toUpperCase()
+      needInviteCode ? code : (inviteCode || '').trim().toUpperCase(),
+      phoneTrim
     );
   },
 
@@ -178,12 +203,17 @@ Page({
     }
   },
 
-  async doLogin(profile, inviteCode) {
+  async doLogin(profile, inviteCode, phone) {
     try {
-      const res = await getUserInfo(profile, inviteCode);
+      const res = await getUserInfo(profile, inviteCode, phone);
       const result = res && res.result;
       if (result && result.success && result.data) {
-        getApp().globalData.userInfo = result.data;
+        const user = result.data;
+        getApp().globalData.userInfo = user;
+        if (!(user.phone && String(user.phone).trim())) {
+          wx.redirectTo({ url: '/pages/profile-settings/index?requirePhone=1' });
+          return;
+        }
         this.navigateAfterLogin(this.data.returnUrl);
         return;
       }

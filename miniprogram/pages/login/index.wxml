@@ -37,6 +37,17 @@
           bindinput="onNicknameInput"
         />
       </view>
+      <view class="nickname-row" wx:if="{{isNewUser === true || isNewUser === null}}">
+        <text class="label">联系电话（必填）</text>
+        <input
+          class="nickname-input"
+          type="number"
+          placeholder="请输入联系电话"
+          value="{{phone}}"
+          maxlength="11"
+          bindinput="onPhoneInput"
+        />
+      </view>
       <view class="invite-code-row" wx:if="{{isNewUser === true || isNewUser === null || inviteCodeReadonly}}">
         <text class="label">邀请码（必填）</text>
         <input
@@ -51,7 +62,7 @@
           wx:else
           class="nickname-input"
           type="text"
-          placeholder="请输入6位数字和字母组合"
+          placeholder="请输入邀请码"
           value="{{inviteCode}}"
           maxlength="6"
           bindinput="onInviteCodeInput"
@@ -65,7 +76,7 @@
         style="margin: 0; width: 100%;"
         type="primary"
         loading="{{loading}}"
-        disabled="{{loading || !avatarDisplay || !nickname || ((isNewUser === true || isNewUser === null) && inviteCode.length !== 6)}}"
+        disabled="{{loading || !avatarDisplay || !nickname || ((isNewUser === true || isNewUser === null) && !phone) || ((isNewUser === true || isNewUser === null) && inviteCode.length !== 6)}}"
         bindtap="onConfirmLogin"
       >
         微信一键授权登录
@@ -73,6 +84,7 @@
     </view>
     <view class="hint" wx:if="{{!avatarDisplay}}">请先选择头像</view>
     <view class="hint" wx:elif="{{!nickname}}">请填写昵称</view>
+    <view class="hint" wx:elif="{{(isNewUser === true || isNewUser === null) && !phone}}">请填写联系电话</view>
     <view class="hint" wx:elif="{{(isNewUser === true || isNewUser === null) && inviteCode.length !== 6}}">请填写6位邀请码</view>
   </view>
 </view>

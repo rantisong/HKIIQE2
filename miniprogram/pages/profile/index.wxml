@@ -53,42 +53,6 @@
     </view>
   </view>
 
-  <view class="exam-progress-section">
-    <view class="exam-progress-header">
-      <text class="exam-progress-title">考试进度</text>
-    </view>
-    <view
-      wx:for="{{examProgressList}}"
-      wx:key="subjectId"
-      class="exam-progress-card {{item.hasExamTime || item.passed ? 'has-time' : ''}}"
-      data-index="{{index}}"
-      bindtap="onExamProgressItem"
-    >
-      <view class="exam-card-bar {{item.passed ? 'exam-card-bar-passed' : ''}}" wx:if="{{item.hasExamTime || item.passed}}"></view>
-      <view class="exam-card-inner">
-        <view class="exam-card-title-row">
-          <text class="exam-card-name">卷{{item.subjectLabel}}：{{item.subjectName}}</text>
-          <view class="exam-countdown-badge {{item.passed ? 'exam-badge-passed' : ''}}" wx:if="{{item.passed || (item.hasExamTime && item.countdownText)}}">
-            <text class="exam-countdown-badge-text">{{item.passed ? '已通过' : item.countdownText}}</text>
-          </view>
-        </view>
-        <view class="exam-card-meta exam-card-meta-passed" wx:if="{{item.passed}}">
-          <md-icon name="event" size="16" colorClass="blue"/>
-          <text class="exam-meta-label">通过日期 : </text>
-          <text class="exam-meta-time">{{item.passedAt}}</text>
-        </view>
-        <view class="exam-card-meta" wx:elif="{{item.hasExamTime}}">
-          <md-icon name="event" size="16" colorClass="blue"/>
-          <text class="exam-meta-label">考试时间 : </text>
-          <text class="exam-meta-time">{{item.examTimeDisplay}}</text>
-        </view>
-        <view class="exam-card-meta exam-card-meta-unset" wx:else>
-          <md-icon name="add_circle_outline" size="18" colorClass="muted"/>
-          <text class="exam-meta-placeholder">设置考试进度</text>
-        </view>
-      </view>
-      <text class="exam-card-arrow">›</text>
-    </view>
-  </view>
+  <exam-progress list="{{examProgressList}}" binditemtap="onExamProgressItem" />
   </block>
 </scroll-view>
