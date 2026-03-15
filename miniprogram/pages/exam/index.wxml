@@ -51,11 +51,16 @@
         <text>"{{question.explanationEn}}"</text>
       </view>
     </view>
-    <!-- 浮动收藏按钮（右下角，仅在提交答案后显示） -->
+    <!-- 浮动收藏按钮（右下角，仅在提交答案后显示；长按可拖动调整上下位置） -->
     <view
       wx:if="{{answerRevealed}}"
       class="favorite-fab {{isFavorited ? 'active' : ''}}"
+      style="bottom: {{260 + favoriteFabOffset}}rpx;"
       bindtap="onToggleFavorite"
+      catchlongpress="onFavoriteFabLongPress"
+      catchtouchmove="onFavoriteFabTouchMove"
+      catchtouchend="onFavoriteFabTouchEnd"
+      catchtouchcancel="onFavoriteFabTouchEnd"
     >
       <text class="favorite-icon">{{isFavorited ? '★' : '☆'}}</text>
     </view>

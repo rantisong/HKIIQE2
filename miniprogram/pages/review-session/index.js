@@ -10,12 +10,18 @@ Page({
     question: null,
     mockUserChoice: null,
     questions: [],
-    isFavorited: true
+    isFavorited: true,
+    favoriteFabOffset: 0  // 用户长按拖动收藏按钮后的垂直偏移（rpx）
   },
   async onLoad() {
     const app = getApp();
     const guest = isGuest();
-    this.setData({ isGuest: guest });
+    let favoriteFabOffset = 0;
+    try {
+      const saved = wx.getStorageSync('favorite_fab_offset_rpx');
+      if (typeof saved === 'number' && saved >= -200 && saved <= 500) favoriteFabOffset = saved;
+    } catch (e) {}
+    this.setData({ isGuest: guest, favoriteFabOffset });
     if (guest) return;
     const paper = app.globalData.selectedPaper;
     if (!paper) {
@@ -108,7 +114,40 @@ Page({
       isFavorited: q.isFavorited !== false
     });
   },
+  onFavoriteFabLongPress(e) {
+    if (!e.touches || !e.touches[0]) return;
+    this._fabStartY = e.touches[0].clientY;
+    this._fabStartOffset = this.data.favoriteFabOffset;
+    this._fabDragging = true;
+    this._fabDidMove = false;
+    wx.showToast({ title: '可拖动调整位置', icon: 'none', duration: 1500 });
+  },
+  onFavoriteFabTouchMove(e) {
+    if (!this._fabDragging || !e.touches || !e.touches[0]) return;
+    const currentY = e.touches[0].clientY;
+    const sys = wx.getSystemInfoSync();
+    const rpxPerPx = 750 / (sys.windowWidth || 375);
+    let newOffset = this._fabStartOffset + (this._fabStartY - currentY) * rpxPerPx;
+    newOffset = Math.max(-200, Math.min(500, Math.round(newOffset)));
+    this.setData({ favoriteFabOffset: newOffset });
+    this._fabDidMove = true;
+  },
+  onFavoriteFabTouchEnd() {
+    if (this._fabDragging && this._fabDidMove) {
+      this._fabIgnoreNextTap = true;
+      try {
+        wx.setStorageSync('favorite_fab_offset_rpx', this.data.favoriteFabOffset);
+      } catch (err) {}
+      wx.showToast({ title: '位置已保存', icon: 'none' });
+    }
+    this._fabDragging = false;
+    this._fabDidMove = false;
+  },
   async onToggleFavorite() {
+    if (this._fabIgnoreNextTap) {
+      this._fabIgnoreNextTap = false;
+      return;
+    }
     const { paper, question, isFavorited } = this.data;
     if (!paper || !question) return;
 

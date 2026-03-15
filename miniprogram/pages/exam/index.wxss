@@ -70,7 +70,7 @@
 .favorite-fab {
   position: fixed;
   right: 40rpx;
-  bottom: 260rpx;
+  /* bottom 由内联 style 控制，便于长按拖动调整 */
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;

@@ -57,10 +57,15 @@
           </view>
         </view>
 
-        <!-- 浮动收藏按钮（右下角） -->
+        <!-- 浮动收藏按钮（右下角；长按可拖动调整上下位置） -->
         <view
           class="favorite-fab {{isFavorited ? 'active' : ''}}"
+          style="bottom: {{260 + favoriteFabOffset}}rpx;"
           bindtap="onToggleFavorite"
+          catchlongpress="onFavoriteFabLongPress"
+          catchtouchmove="onFavoriteFabTouchMove"
+          catchtouchend="onFavoriteFabTouchEnd"
+          catchtouchcancel="onFavoriteFabTouchEnd"
         >
           <text class="favorite-icon">{{isFavorited ? '★' : '☆'}}</text>
         </view>
